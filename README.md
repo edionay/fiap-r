@@ -69,6 +69,8 @@ Os testes unitários cobrirão entidades, objetos de valor e casos de uso. Teste
 
 O README será atualizado a cada mudança relevante do produto. A documentação de domínio será construída de forma incremental e incluirá linguagem ubíqua, Event Storming e Domain Storytelling.
 
+- [Linguagem ubíqua e regras do domínio](docs/ddd/linguagem-ubiqua.md)
+
 ## Plano de evolução
 
 O desenvolvimento será dividido nas seguintes entregas:
