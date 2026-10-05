@@ -4,7 +4,7 @@
 
 Este documento descreve como os atores realizam as atividades principais da Plataforma de Gestão de Veículos. As histórias apresentam a sequência de trabalho, os objetos utilizados e as regras aplicadas em cada fluxo.
 
-Os termos seguem a [linguagem ubíqua](linguagem-ubiqua.md) do contexto Gestão de Veículos.
+Os termos seguem a [linguagem ubíqua](linguagem-ubiqua.md) do contexto Gestão de Veículos. As definições de [atores](linguagem-ubiqua.md#atores), [objetos do domínio](linguagem-ubiqua.md#termos-do-domínio) e [invariantes](linguagem-ubiqua.md#invariantes) permanecem centralizadas naquele documento.
 
 ## Notação
 
@@ -13,25 +13,6 @@ Os termos seguem a [linguagem ubíqua](linguagem-ubiqua.md) do contexto Gestão 
 - Formas com cantos arredondados representam dados utilizados durante uma atividade.
 - Setas numeradas representam as atividades na ordem em que acontecem.
 - O Sistema representa a Plataforma de Gestão de Veículos e não introduz um novo ator de negócio.
-
-## Atores
-
-### Operador
-
-Interage diretamente com a plataforma para administrar o catálogo, registrar vendas e consultar informações.
-
-### Comprador
-
-Fornece os dados necessários para a venda. Nesta versão, não interage diretamente com a plataforma e não possui cadastro próprio.
-
-## Objetos de trabalho
-
-- **Dados do veículo**: marca, modelo, ano de fabricação, cor e preço anunciado.
-- **Veículo**: item individual mantido no catálogo.
-- **Dados da venda**: CPF do comprador e data da venda.
-- **Venda**: registro definitivo da aquisição de um veículo.
-- **Histórico do veículo**: sequência imutável de cadastro, edições e venda.
-- **Lista de veículos**: resultado ordenado de veículos disponíveis ou vendidos.
 
 ## História 1 - Cadastrar veículo
 
@@ -62,13 +43,9 @@ flowchart LR
 4. O Sistema registra o evento Veículo cadastrado no Histórico do veículo.
 5. O Sistema devolve a confirmação e os dados do Veículo cadastrado.
 
-### Regras aplicadas
+### Invariantes aplicadas
 
-- Marca, modelo e cor são obrigatórios.
-- O ano de fabricação deve respeitar o limite definido pelo domínio.
-- O preço anunciado deve ser maior que zero e possuir no máximo duas casas decimais.
-- O Veículo e o registro de histórico devem ser persistidos na mesma transação.
-- Datas de criação e atualização recebem o mesmo instante inicial em UTC.
+Esta história aplica as invariantes `INV-01`, `INV-02`, `INV-03`, `INV-04`, `INV-05`, `INV-12`, `INV-13` e `INV-14`.
 
 ### Resultado
 
@@ -112,13 +89,9 @@ flowchart LR
 5. O Sistema registra o evento Veículo editado com os valores anteriores e novos.
 6. O Sistema devolve os dados atualizados.
 
-### Regras aplicadas
+### Invariantes aplicadas
 
-- Somente Veículos Disponíveis podem ser editados.
-- Os novos valores devem atender às mesmas validações do cadastro.
-- Campos não informados permanecem inalterados.
-- Uma solicitação sem mudança efetiva não altera a data de atualização nem gera histórico.
-- A edição e o histórico devem ser persistidos na mesma transação.
+Esta história aplica as invariantes `INV-02`, `INV-03`, `INV-04`, `INV-06`, `INV-12`, `INV-13` e `INV-15`.
 
 ### Resultado
 
@@ -169,15 +142,9 @@ flowchart LR
 7. O Sistema registra o evento Veículo vendido no histórico.
 8. O Sistema devolve a confirmação da venda.
 
-### Regras aplicadas
+### Invariantes aplicadas
 
-- O Veículo deve existir e estar Disponível.
-- O CPF deve passar pela validação dos dígitos verificadores.
-- A data da venda não pode estar no futuro nem ser anterior ao cadastro do Veículo.
-- O preço da venda deve ser copiado do preço anunciado no momento da operação.
-- Cada Veículo pode possuir no máximo uma Venda.
-- Mudança de situação, Venda e histórico devem ser persistidos na mesma transação.
-- O CPF completo não pode aparecer em logs, métricas ou mensagens de erro.
+Esta história aplica as invariantes `INV-06`, `INV-07`, `INV-08`, `INV-09`, `INV-10`, `INV-11`, `INV-12`, `INV-13`, `INV-14` e `INV-16`.
 
 ### Resultado
 
@@ -224,13 +191,9 @@ flowchart LR
 4. O Sistema ordena o catálogo pelo preço aplicável ou o histórico pela data do evento.
 5. O Sistema apresenta o resultado ao Operador.
 
-### Regras aplicadas
+### Invariantes aplicadas
 
-- Veículos Disponíveis são ordenados pelo preço anunciado em ordem crescente.
-- Veículos Vendidos são ordenados pelo preço da venda em ordem crescente.
-- Empates de preço são resolvidos pelo identificador do Veículo em ordem crescente.
-- O histórico é apresentado em ordem cronológica crescente.
-- Consultas não alteram o Veículo, suas datas ou seu histórico.
+Esta história aplica as invariantes `INV-13`, `INV-17`, `INV-18`, `INV-19` e `INV-20`.
 
 ### Resultado
 
@@ -243,11 +206,3 @@ O Operador recebe uma lista determinística ou o histórico cronológico solicit
 - Falha de acesso aos dados.
 
 Uma consulta válida sem resultados devolve uma coleção vazia e não representa erro.
-
-## Consistência entre as histórias
-
-- Todo Veículo começa Disponível na História 1.
-- A História 2 preserva a situação Disponível e registra somente mudanças efetivas.
-- A História 3 realiza a única transição de situação desta versão.
-- A História 4 apenas observa os estados e fatos produzidos pelas outras histórias.
-- Cadastro, edição e venda sempre registram histórico de forma atômica.

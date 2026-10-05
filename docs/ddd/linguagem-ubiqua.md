@@ -72,6 +72,10 @@ Registro definitivo da aquisição de um veículo por um comprador. Uma venda co
 
 Cada veículo pode possuir no máximo uma venda. Cancelamento ou estorno de venda não fazem parte do escopo atual.
 
+### Dados da venda
+
+Conjunto formado pelo CPF do comprador e pela data da venda, informado pelo Operador para registrar a operação.
+
 ### CPF do comprador
 
 Identificador fiscal informado no momento da venda. Deve conter 11 dígitos e passar pela validação dos dígitos verificadores.
@@ -120,6 +124,10 @@ Momento em que um registro foi criado no sistema. Para o veículo, representa o 
 
 Momento da última mudança efetiva no estado do veículo. Consultas sem alteração não modificam essa data.
 
+### Lista de veículos
+
+Coleção resultante da consulta de Veículos Disponíveis ou Veículos Vendidos, organizada segundo os critérios de ordenação do domínio.
+
 ## Agregado principal
 
 O **Veículo** é a raiz do agregado no contexto Gestão de Veículos. Toda mudança em seus dados, situação ou venda deve ocorrer por meio dessa raiz.
@@ -130,22 +138,28 @@ O Histórico do Veículo registra os fatos produzidos pelo agregado e deve ser p
 
 ## Invariantes
 
-As regras abaixo devem permanecer verdadeiras independentemente de a operação ter sido iniciada pela API, por um teste ou por outro adaptador:
+As regras abaixo devem permanecer verdadeiras independentemente de a operação ter sido iniciada pela API, por um teste ou por outro adaptador. Os identificadores permitem que outros documentos façam referência às regras sem duplicar seu conteúdo.
 
-1. Todo veículo possui um identificador único gerado pelo sistema.
-2. Marca, modelo e cor são obrigatórios e não podem conter apenas espaços.
-3. O ano de fabricação é inteiro, possui quatro dígitos e não é posterior ao próximo ano civil.
-4. O preço anunciado é maior que zero e possui no máximo duas casas decimais.
-5. Um veículo novo sempre começa como Disponível.
-6. Somente um veículo disponível pode ser editado ou vendido.
-7. A única transição de situação permitida nesta versão é de Disponível para Vendido.
-8. Um veículo pode possuir no máximo uma venda.
-9. O CPF do comprador deve ser válido antes do registro da venda.
-10. A data da venda não pode estar no futuro nem ser anterior ao cadastro do veículo.
-11. O preço da venda preserva o preço anunciado vigente no momento da operação.
-12. Cadastro, edição e venda produzem histórico na mesma transação da mudança principal.
-13. Registros do histórico são imutáveis.
-14. Datas são armazenadas em UTC e expostas em ISO 8601.
+- `INV-01`: Todo veículo possui um identificador único gerado pelo sistema.
+- `INV-02`: Marca, modelo e cor são obrigatórios e não podem conter apenas espaços.
+- `INV-03`: O ano de fabricação é inteiro, possui quatro dígitos e não é posterior ao próximo ano civil.
+- `INV-04`: O preço anunciado é maior que zero e possui no máximo duas casas decimais.
+- `INV-05`: Um veículo novo sempre começa como Disponível.
+- `INV-06`: Somente um veículo disponível pode ser editado ou vendido.
+- `INV-07`: A única transição de situação permitida nesta versão é de Disponível para Vendido.
+- `INV-08`: Um veículo pode possuir no máximo uma venda.
+- `INV-09`: O CPF do comprador deve ser válido antes do registro da venda.
+- `INV-10`: A data da venda não pode estar no futuro nem ser anterior ao cadastro do veículo.
+- `INV-11`: O preço da venda preserva o preço anunciado vigente no momento da operação.
+- `INV-12`: Cadastro, edição e venda produzem histórico na mesma transação da mudança principal.
+- `INV-13`: Registros do histórico são imutáveis.
+- `INV-14`: Datas são armazenadas em UTC e expostas em ISO 8601.
+- `INV-15`: Uma edição modifica somente os campos informados. Sem mudança efetiva, a data de atualização e o histórico permanecem inalterados.
+- `INV-16`: O CPF completo não aparece em logs, métricas ou mensagens de erro.
+- `INV-17`: Veículos Disponíveis são ordenados pelo preço anunciado em ordem crescente, com desempate pelo identificador em ordem crescente.
+- `INV-18`: Veículos Vendidos são ordenados pelo preço da venda em ordem crescente, com desempate pelo identificador em ordem crescente.
+- `INV-19`: O histórico é apresentado em ordem cronológica crescente.
+- `INV-20`: Consultas não alteram o Veículo, suas datas ou seu histórico.
 
 ## Vocabulário de operações
 
@@ -186,10 +200,6 @@ O negócio e a documentação usam os termos em português. O código pode usar 
 - Registrar venda: `SellVehicle`.
 
 Não use nomes diferentes para o mesmo conceito em camadas distintas.
-
-## Exemplo de narrativa
-
-Um Operador cadastra um Veículo com seus dados e preço anunciado. O Veículo passa a estar Disponível e o cadastro entra no Histórico do Veículo. Enquanto estiver Disponível, o Operador pode editar seus dados. Quando um Comprador adquire o Veículo, o Operador registra a Venda com o CPF e a data da venda. O sistema preserva o preço da venda, altera a situação para Vendido e registra o fato no histórico. A partir desse momento, o Veículo não pode ser editado nem vendido novamente.
 
 ## Decisões pendentes
 
