@@ -71,6 +71,7 @@ O README será atualizado a cada mudança relevante do produto. A documentação
 
 - [Linguagem ubíqua e regras do domínio](docs/ddd/linguagem-ubiqua.md)
 - [Domain Storytelling da gestão de veículos](docs/ddd/domain-storytelling.md)
+- [Event Storming da gestão de veículos](docs/ddd/event-storming.md)
 
 ## Plano de evolução
 
