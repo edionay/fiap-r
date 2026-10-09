@@ -1,0 +1,18 @@
+{
+  "entryFile": "src/config/server.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": [
+    "src/adapters/inbound/http/controllers/**/*.controller.ts"
+  ],
+  "spec": {
+    "outputDirectory": "dist/openapi",
+    "specVersion": 3,
+    "name": "Vehicle Management API",
+    "version": "0.1.0",
+    "description": "API para gestão do catálogo e das vendas de veículos."
+  },
+  "routes": {
+    "routesDir": "src/adapters/inbound/http/generated",
+    "middleware": "express"
+  }
+}

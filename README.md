@@ -22,13 +22,14 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 - Node.js
 - TypeScript
 - TSOA
+- Express
 - PostgreSQL
 - Docker e Docker Compose
-- Testes unitários
+- Vitest
 
 ## Estado atual
 
-O projeto está na fase de especificação. Esta primeira entrega define requisitos, arquitetura, decisões iniciais e o plano incremental. O código executável e os arquivos de infraestrutura serão adicionados nas próximas entregas.
+O projeto possui uma estrutura executável inicial com servidor HTTP, geração OpenAPI, rota de saúde e testes automatizados. Os casos de uso de veículos, a persistência e os arquivos de infraestrutura serão adicionados nas próximas entregas.
 
 ## Execução com Docker
 
@@ -40,18 +41,46 @@ docker compose up --build
 
 Quando a implementação estiver disponível, esse comando iniciará a API e o PostgreSQL com todas as dependências necessárias. A API terá uma rota de verificação de saúde e documentação OpenAPI gerada pelo TSOA.
 
+## Requisitos
+
+- Node.js 24 LTS.
+- npm 11 ou superior.
+
 ## Execução para desenvolvimento
 
-Os comandos previstos para o ambiente de desenvolvimento são:
+Use a versão de Node.js definida no projeto, instale as dependências e inicie o servidor:
 
 ```bash
+nvm use
 npm install
-cp .env.example .env
-npm run db:migrate
 npm run dev
 ```
 
-As versões suportadas do Node.js e os valores de configuração serão registrados junto com a estrutura inicial da aplicação.
+A API estará disponível em `http://localhost:3000`. A porta pode ser alterada pela variável de ambiente `PORT`.
+
+Verifique a aplicação em:
+
+```text
+GET http://localhost:3000/health
+```
+
+A resposta esperada é:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+## OpenAPI
+
+Gere a especificação e as rotas do TSOA com:
+
+```bash
+npm run generate
+```
+
+A especificação será criada em `dist/openapi/swagger.json`. As rotas geradas são artefatos de build e não são versionadas.
 
 ## Testes e verificações
 
@@ -61,9 +90,10 @@ Os comandos previstos para validação são:
 npm run typecheck
 npm run lint
 npm test
+npm run build
 ```
 
-Os testes unitários cobrirão entidades, objetos de valor e casos de uso. Testes de integração da persistência e da API serão adicionados quando necessários para proteger os contratos entre adaptadores.
+Os testes atuais cobrem a configuração da aplicação, o caso de uso da verificação de saúde e o contrato HTTP de `GET /health`. As próximas funcionalidades devem incluir testes unitários para entidades, objetos de valor e casos de uso.
 
 ## Documentação
 

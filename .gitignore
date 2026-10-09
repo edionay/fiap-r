@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.tsoa/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/
+src/adapters/inbound/http/generated/
