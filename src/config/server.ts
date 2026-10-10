@@ -1,9 +1,9 @@
-import { createApp } from '../adapters/inbound/http/app';
-import { getPort } from './env';
+import { criarAplicacao } from '../adapters/inbound/http/app';
+import { obterPorta } from './env';
 
-const port = getPort(process.env.PORT);
-const app = createApp();
+const porta = obterPorta(process.env.PORT);
+const aplicacao = criarAplicacao();
 
-app.listen(port, () => {
-  console.log(`Vehicle Management API listening on port ${String(port)}.`);
+aplicacao.listen(porta, () => {
+  console.log(`API de gerenciamento de veículos ouvindo na porta ${String(porta)}.`);
 });

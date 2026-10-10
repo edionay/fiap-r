@@ -1,16 +1,16 @@
-const DEFAULT_PORT = 3000;
-const MAX_PORT = 65_535;
+const PORTA_PADRAO = 3000;
+const PORTA_MAXIMA = 65_535;
 
-export function getPort(value: string | undefined): number {
-  if (value === undefined || value.trim() === '') {
-    return DEFAULT_PORT;
+export function obterPorta(valor: string | undefined): number {
+  if (valor === undefined || valor.trim() === '') {
+    return PORTA_PADRAO;
   }
 
-  const port = Number(value);
+  const porta = Number(valor);
 
-  if (!Number.isInteger(port) || port < 1 || port > MAX_PORT) {
-    throw new Error('PORT must be an integer between 1 and 65535.');
+  if (!Number.isInteger(porta) || porta < 1 || porta > PORTA_MAXIMA) {
+    throw new Error('PORT deve ser um número inteiro entre 1 e 65535.');
   }
 
-  return port;
+  return porta;
 }
