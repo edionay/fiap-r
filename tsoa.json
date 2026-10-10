@@ -7,7 +7,7 @@
   "spec": {
     "outputDirectory": "dist/openapi",
     "specVersion": 3,
-    "name": "Vehicle Management API",
+    "name": "API de Gerenciamento de Veículos",
     "version": "0.1.0",
     "description": "API para gestão do catálogo e das vendas de veículos."
   },

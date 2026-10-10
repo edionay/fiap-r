@@ -1,0 +1,45 @@
+import type { ErrorRequestHandler, RequestHandler } from 'express';
+import { ValidateError } from '@tsoa/runtime';
+
+interface RespostaDeErro {
+  codigo: string;
+  mensagem: string;
+  detalhes?: unknown;
+}
+
+export const tratadorDeRotaNaoEncontrada: RequestHandler = (
+  _requisicao,
+  resposta,
+) => {
+  const corpo: RespostaDeErro = {
+    codigo: 'ROTA_NAO_ENCONTRADA',
+    mensagem: 'Rota não encontrada.',
+  };
+
+  resposta.status(404).json(corpo);
+};
+
+export const tratadorDeErros: ErrorRequestHandler = (
+  erro: unknown,
+  _requisicao,
+  resposta,
+  _proximo,
+) => {
+  if (erro instanceof ValidateError) {
+    const corpo: RespostaDeErro = {
+      codigo: 'ERRO_DE_VALIDACAO',
+      mensagem: 'A validação da requisição falhou.',
+      detalhes: erro.fields,
+    };
+
+    resposta.status(422).json(corpo);
+    return;
+  }
+
+  const corpo: RespostaDeErro = {
+    codigo: 'ERRO_INTERNO',
+    mensagem: 'Ocorreu um erro inesperado.',
+  };
+
+  resposta.status(500).json(corpo);
+};

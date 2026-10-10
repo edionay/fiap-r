@@ -1,5 +1,5 @@
 {
-  "name": "vehicle-management-api",
+  "name": "api-gerenciamento-veiculos",
   "version": "0.1.0",
   "private": true,
   "description": "API para gestão do catálogo e das vendas de veículos.",

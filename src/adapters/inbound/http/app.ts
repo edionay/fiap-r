@@ -1,17 +1,20 @@
 import express, { type Express } from 'express';
 import { RegisterRoutes } from './generated/routes';
-import { errorHandler, notFoundHandler } from './middlewares/error-handler';
+import {
+  tratadorDeErros,
+  tratadorDeRotaNaoEncontrada,
+} from './middlewares/tratador-de-erros';
 
-export function createApp(): Express {
-  const app = express();
+export function criarAplicacao(): Express {
+  const aplicacao = express();
 
-  app.disable('x-powered-by');
-  app.use(express.json({ limit: '1mb' }));
+  aplicacao.disable('x-powered-by');
+  aplicacao.use(express.json({ limit: '1mb' }));
 
-  RegisterRoutes(app);
+  RegisterRoutes(aplicacao);
 
-  app.use(notFoundHandler);
-  app.use(errorHandler);
+  aplicacao.use(tratadorDeRotaNaoEncontrada);
+  aplicacao.use(tratadorDeErros);
 
-  return app;
+  return aplicacao;
 }
