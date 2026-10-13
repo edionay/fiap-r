@@ -13,6 +13,7 @@
   },
   "routes": {
     "routesDir": "src/adapters/inbound/http/generated",
-    "middleware": "express"
+    "middleware": "express",
+    "iocModule": "src/config/fabrica-de-controllers"
   }
 }
