@@ -29,22 +29,29 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui uma estrutura executável inicial com servidor HTTP, geração OpenAPI, rota de saúde e testes automatizados. Os casos de uso de veículos, a persistência e os arquivos de infraestrutura serão adicionados nas próximas entregas.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os casos de uso de veículos serão adicionados nas próximas entregas.
 
 ## Execução com Docker
 
-O contrato de execução local será um único comando:
+Crie e inicie a API e o PostgreSQL com:
 
 ```bash
 docker compose up --build
 ```
 
-Quando a implementação estiver disponível, esse comando iniciará a API e o PostgreSQL com todas as dependências necessárias. A API terá uma rota de verificação de saúde e documentação OpenAPI gerada pelo TSOA.
+O Compose aguarda o PostgreSQL ficar saudável, executa as migrações pendentes e somente então inicia a API. Os dados do banco são preservados no volume `dados_postgres`.
+
+Para encerrar os containers sem remover os dados:
+
+```bash
+docker compose down
+```
 
 ## Requisitos
 
 - Node.js 24 LTS.
 - npm 11 ou superior.
+- Docker com Docker Compose para o ambiente completo.
 
 ## Execução para desenvolvimento
 
@@ -53,6 +60,9 @@ Use a versão de Node.js definida no projeto, instale as dependências e inicie 
 ```bash
 nvm use
 npm install
+cp .env.example .env
+docker compose up -d postgres
+npm run db:migrate:dev
 npm run dev
 ```
 
@@ -62,15 +72,49 @@ Verifique a aplicação em:
 
 ```text
 GET http://localhost:3000/health
+GET http://localhost:3000/ready
 ```
 
-A resposta esperada é:
+`/health` verifica o processo da API. `/ready` verifica também a conexão com o PostgreSQL e responde com código `503` quando o banco não está disponível.
+
+As respostas esperadas são:
 
 ```json
 {
   "status": "ok"
 }
 ```
+
+```json
+{
+  "status": "ready"
+}
+```
+
+## Banco de dados
+
+A configuração local está em `.env.example`. O arquivo `.env` não é versionado.
+
+Variáveis disponíveis:
+
+- `DATABASE_URL`: endereço completo do PostgreSQL.
+- `DB_MAX_CONNECTIONS`: limite de conexões do pool.
+- `DB_IDLE_TIMEOUT_MS`: tempo máximo de inatividade de uma conexão.
+- `DB_CONNECTION_TIMEOUT_MS`: limite para estabelecer uma conexão.
+
+Execute migrações no ambiente de desenvolvimento com:
+
+```bash
+npm run db:migrate:dev
+```
+
+Reverta a última migração com:
+
+```bash
+npm run db:migrate:down:dev
+```
+
+O esquema inicial contém as tabelas `veiculos`, `vendas` e `historico_veiculos`, além de índices e restrições de integridade.
 
 ## OpenAPI
 
@@ -91,9 +135,16 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+docker compose config --quiet
 ```
 
-Os testes atuais cobrem a configuração da aplicação, o caso de uso da verificação de saúde e o contrato HTTP de `GET /health`. As próximas funcionalidades devem incluir testes unitários para entidades, objetos de valor e casos de uso.
+Os testes atuais cobrem configuração, saúde, prontidão, adaptador PostgreSQL e contratos HTTP. Com o PostgreSQL local iniciado e migrado, execute a integração real com:
+
+```bash
+TEST_DATABASE_URL=postgresql://veiculos:veiculos@localhost:5432/gestao_veiculos npm run test:integration:database
+```
+
+As próximas funcionalidades devem incluir testes unitários para entidades, objetos de valor e casos de uso.
 
 ## Documentação
 

@@ -9,25 +9,33 @@
   },
   "scripts": {
     "build": "npm run generate && tsc -p tsconfig.build.json",
-    "dev": "npm run generate:routes && tsx watch src/config/server.ts",
+    "db:migrate": "node-pg-migrate up --migrations-dir migrations",
+    "db:migrate:down": "node-pg-migrate down --migrations-dir migrations",
+    "db:migrate:dev": "node-pg-migrate up --migrations-dir migrations --envPath .env",
+    "db:migrate:down:dev": "node-pg-migrate down --migrations-dir migrations --envPath .env",
+    "dev": "npm run generate:routes && node --env-file=.env --watch --import tsx src/config/server.ts",
     "generate": "tsoa spec-and-routes",
     "generate:routes": "tsoa routes",
     "generate:spec": "tsoa spec",
     "lint": "eslint .",
     "start": "node dist/config/server.js",
     "test": "vitest run",
+    "test:integration:database": "vitest run tests/integration/postgres",
     "test:watch": "vitest",
     "typecheck": "npm run generate:routes && tsc --noEmit"
   },
   "dependencies": {
     "@tsoa/runtime": "6.6.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "node-pg-migrate": "9.0.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tsoa/cli": "6.6.0",
     "@types/express": "^5.0.6",
     "@types/node": "^24.1.0",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^6.0.3",
     "eslint": "^10.12.0",
     "supertest": "^7.3.1",
