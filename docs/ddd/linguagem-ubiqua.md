@@ -42,7 +42,7 @@ Nome comercial que identifica a linha do veículo dentro de uma marca.
 
 ### Ano de fabricação
 
-Ano em que o veículo foi fabricado. Não representa ano do modelo e não pode ser posterior ao próximo ano civil.
+Ano em que o veículo foi fabricado. Não representa ano do modelo, deve ser igual ou posterior a 1886 e não pode ser posterior ao próximo ano civil.
 
 ### Cor
 
@@ -60,11 +60,11 @@ Estado atual do veículo dentro do catálogo. Nesta versão, existem somente as 
 
 ### Veículo disponível
 
-Veículo que pode ter seus dados editados e cuja venda pode ser registrada. Corresponde à situação técnica `AVAILABLE`.
+Veículo que pode ter seus dados editados e cuja venda pode ser registrada. Corresponde à situação técnica `DISPONIVEL`.
 
 ### Veículo vendido
 
-Veículo que possui uma venda registrada e não está mais disponível. Seus dados comerciais não podem ser editados nesta versão. Corresponde à situação técnica `SOLD`.
+Veículo que possui uma venda registrada e não está mais disponível. Seus dados comerciais não podem ser editados nesta versão. Corresponde à situação técnica `VENDIDO`.
 
 ### Venda
 
@@ -142,7 +142,7 @@ As regras abaixo devem permanecer verdadeiras independentemente de a operação 
 
 - `INV-01`: Todo veículo possui um identificador único gerado pelo sistema.
 - `INV-02`: Marca, modelo e cor são obrigatórios e não podem conter apenas espaços.
-- `INV-03`: O ano de fabricação é inteiro, possui quatro dígitos e não é posterior ao próximo ano civil.
+- `INV-03`: O ano de fabricação é inteiro, está entre 1886 e o próximo ano civil e possui quatro dígitos.
 - `INV-04`: O preço anunciado é maior que zero e possui no máximo duas casas decimais.
 - `INV-05`: Um veículo novo sempre começa como Disponível.
 - `INV-06`: Somente um veículo disponível pode ser editado ou vendido.
@@ -186,18 +186,18 @@ Os detalhes de comandos, eventos, políticas e pontos de atenção serão desenv
 
 ## Correspondência com o código
 
-O negócio e a documentação usam os termos em português. O código pode usar equivalentes em inglês desde que a correspondência permaneça estável:
+O negócio, a documentação e o código usam os termos em português sempre que possível. Nomes impostos pelo ecossistema, bibliotecas, protocolos e padrões técnicos permanecem em inglês.
 
-- Veículo: `Vehicle`.
-- Venda: `Sale`.
-- Comprador: `Buyer`.
-- Preço anunciado: `AskingPrice`.
-- Preço da venda: `SalePrice`.
-- Situação do veículo: `VehicleStatus`.
-- Histórico do veículo: `VehicleHistory`.
-- Cadastrar veículo: `CreateVehicle`.
-- Editar veículo: `UpdateVehicle`.
-- Registrar venda: `SellVehicle`.
+- Veículo: `Veiculo`.
+- Venda: `Venda`.
+- Comprador: `Comprador`.
+- Preço anunciado: `PrecoAnunciado`.
+- Preço da venda: `PrecoVenda`.
+- Situação do veículo: `SituacaoVeiculo`.
+- Histórico do veículo: `HistoricoVeiculo`.
+- Cadastrar veículo: `CadastrarVeiculo`.
+- Editar veículo: `EditarVeiculo`.
+- Registrar venda: `VenderVeiculo`.
 
 Não use nomes diferentes para o mesmo conceito em camadas distintas.
 
