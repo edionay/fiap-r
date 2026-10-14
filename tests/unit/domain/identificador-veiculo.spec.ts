@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ErroDominio } from '../../../../src/domain/errors/erro-dominio';
-import { IdentificadorVeiculo } from '../../../../src/domain/value-objects/identificador-veiculo';
+import { ErroDominio } from '../../../src/domain/erro-dominio';
+import { IdentificadorVeiculo } from '../../../src/domain/identificador-veiculo';
 
 describe('IdentificadorVeiculo', () => {
   it('cria e normaliza um identificador UUID', () => {

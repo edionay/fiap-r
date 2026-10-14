@@ -1,4 +1,4 @@
-import { ErroDominio } from '../errors/erro-dominio';
+import { ErroDominio } from './erro-dominio';
 
 const PRIMEIRO_ANO_AUTOMOVEL = 1886;
 

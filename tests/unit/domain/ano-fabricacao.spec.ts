@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ErroDominio } from '../../../../src/domain/errors/erro-dominio';
-import { AnoFabricacao } from '../../../../src/domain/value-objects/ano-fabricacao';
+import { AnoFabricacao } from '../../../src/domain/ano-fabricacao';
+import { ErroDominio } from '../../../src/domain/erro-dominio';
 
 describe('AnoFabricacao', () => {
   it('aceita o próximo ano civil', () => {

@@ -1,4 +1,4 @@
-import type { SituacaoVeiculo } from '../entities/situacao-veiculo';
+import type { SituacaoVeiculo } from './situacao-veiculo';
 
 export const TipoEventoVeiculo = {
   CADASTRADO: 'VEICULO_CADASTRADO',

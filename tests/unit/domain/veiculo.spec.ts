@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { SituacaoVeiculo } from '../../../../src/domain/entities/situacao-veiculo';
-import { Veiculo } from '../../../../src/domain/entities/veiculo';
-import { ErroDominio } from '../../../../src/domain/errors/erro-dominio';
-import { TipoEventoVeiculo } from '../../../../src/domain/events/veiculo-cadastrado';
-import { AnoFabricacao } from '../../../../src/domain/value-objects/ano-fabricacao';
-import { IdentificadorVeiculo } from '../../../../src/domain/value-objects/identificador-veiculo';
-import { Preco } from '../../../../src/domain/value-objects/preco';
+import { AnoFabricacao } from '../../../src/domain/ano-fabricacao';
+import { ErroDominio } from '../../../src/domain/erro-dominio';
+import { IdentificadorVeiculo } from '../../../src/domain/identificador-veiculo';
+import { Preco } from '../../../src/domain/preco';
+import { SituacaoVeiculo } from '../../../src/domain/situacao-veiculo';
+import { Veiculo } from '../../../src/domain/veiculo';
+import { TipoEventoVeiculo } from '../../../src/domain/veiculo-cadastrado';
 
 const IDENTIFICADOR = IdentificadorVeiculo.criar(
   '550e8400-e29b-41d4-a716-446655440000',

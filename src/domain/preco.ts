@@ -1,4 +1,4 @@
-import { ErroDominio } from '../errors/erro-dominio';
+import { ErroDominio } from './erro-dominio';
 
 const LIMITE_CENTAVOS = 999_999_999_999;
 

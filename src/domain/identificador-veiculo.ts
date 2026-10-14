@@ -1,4 +1,4 @@
-import { ErroDominio } from '../errors/erro-dominio';
+import { ErroDominio } from './erro-dominio';
 
 const FORMATO_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
