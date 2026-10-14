@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 import type { ObterEstadoDeProntidao } from '../../../application/saude/obter-estado-de-prontidao';
+import type { CadastrarVeiculo } from '../../../application/veiculos/cadastrar-veiculo';
 import { RegisterRoutes } from './generated/routes';
 import {
   tratadorDeErros,
@@ -8,10 +9,11 @@ import {
 
 export interface DependenciasAplicacao {
   obterEstadoDeProntidao: ObterEstadoDeProntidao;
+  cadastrarVeiculo: CadastrarVeiculo;
 }
 
 export function criarAplicacao(
-  dependencias?: DependenciasAplicacao,
+  dependencias: Partial<DependenciasAplicacao> = {},
 ): Express {
   const aplicacao = express();
 

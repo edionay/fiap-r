@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O núcleo de domínio representa o cadastro de um veículo, incluindo identificador, ano de fabricação, preço em centavos, situação inicial e evento de cadastro. A camada de aplicação possui o caso de uso de cadastro, e o adaptador PostgreSQL persiste veículo e histórico na mesma transação.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O fluxo de cadastro está disponível em `POST /veiculos`, e o adaptador PostgreSQL persiste veículo e histórico na mesma transação.
 
 ## Execução com Docker
 
@@ -88,6 +88,38 @@ As respostas esperadas são:
 ```json
 {
   "status": "ready"
+}
+```
+
+## Cadastro de veículos
+
+Cadastre um veículo com:
+
+```bash
+curl --request POST http://localhost:3000/veiculos \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "marca": "Honda",
+    "modelo": "Civic",
+    "anoFabricacao": 2025,
+    "cor": "Preto",
+    "precoAnunciado": "75000.99"
+  }'
+```
+
+O preço é informado como string decimal, sem separador de milhares, para preservar a precisão monetária. Uma resposta bem-sucedida usa o código `201`:
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "marca": "Honda",
+  "modelo": "Civic",
+  "anoFabricacao": 2025,
+  "cor": "Preto",
+  "precoAnunciado": "75000.99",
+  "situacao": "DISPONIVEL",
+  "criadoEm": "2026-10-14T12:00:00.000Z",
+  "atualizadoEm": "2026-10-14T12:00:00.000Z"
 }
 ```
 

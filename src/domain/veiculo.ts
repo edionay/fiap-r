@@ -31,7 +31,10 @@ function normalizarEValidarTextoObrigatorio(
   const valorNormalizado = valor.trim();
 
   if (valorNormalizado === '') {
-    throw new ErroDominio(codigoErro, `${campo} é obrigatório.`);
+    throw new ErroDominio(
+      codigoErro,
+      `O campo ${campo.toLowerCase()} é obrigatório.`,
+    );
   }
 
   return valorNormalizado;
@@ -70,17 +73,17 @@ export class Veiculo {
     dados: DadosCadastroVeiculo,
   ): ResultadoCadastroVeiculo {
     const marca = normalizarEValidarTextoObrigatorio(
-      'Marca',
+      'marca',
       'MARCA_OBRIGATORIA',
       dados.marca,
     );
     const modelo = normalizarEValidarTextoObrigatorio(
-      'Modelo',
+      'modelo',
       'MODELO_OBRIGATORIO',
       dados.modelo,
     );
     const cor = normalizarEValidarTextoObrigatorio(
-      'Cor',
+      'cor',
       'COR_OBRIGATORIA',
       dados.cor,
     );
