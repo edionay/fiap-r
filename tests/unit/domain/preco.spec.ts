@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ErroDominio } from '../../../../src/domain/errors/erro-dominio';
-import { Preco } from '../../../../src/domain/value-objects/preco';
+import { ErroDominio } from '../../../src/domain/erro-dominio';
+import { Preco } from '../../../src/domain/preco';
 
 describe('Preco', () => {
   it('cria um preço representado em centavos', () => {

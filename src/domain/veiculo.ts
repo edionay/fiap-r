@@ -1,11 +1,11 @@
-import { ErroDominio } from '../errors/erro-dominio';
+import type { AnoFabricacao } from './ano-fabricacao';
+import { ErroDominio } from './erro-dominio';
 import {
   criarEventoVeiculoCadastrado,
   type VeiculoCadastrado,
-} from '../events/veiculo-cadastrado';
-import type { AnoFabricacao } from '../value-objects/ano-fabricacao';
-import type { IdentificadorVeiculo } from '../value-objects/identificador-veiculo';
-import type { Preco } from '../value-objects/preco';
+} from './veiculo-cadastrado';
+import type { IdentificadorVeiculo } from './identificador-veiculo';
+import type { Preco } from './preco';
 import { SituacaoVeiculo } from './situacao-veiculo';
 
 export interface DadosCadastroVeiculo {
@@ -23,7 +23,7 @@ export interface ResultadoCadastroVeiculo {
   evento: VeiculoCadastrado;
 }
 
-function validarTextoObrigatorio(
+function normalizarEValidarTextoObrigatorio(
   campo: string,
   codigoErro: string,
   valor: string,
@@ -69,17 +69,21 @@ export class Veiculo {
   public static cadastrar(
     dados: DadosCadastroVeiculo,
   ): ResultadoCadastroVeiculo {
-    const marca = validarTextoObrigatorio(
+    const marca = normalizarEValidarTextoObrigatorio(
       'Marca',
       'MARCA_OBRIGATORIA',
       dados.marca,
     );
-    const modelo = validarTextoObrigatorio(
+    const modelo = normalizarEValidarTextoObrigatorio(
       'Modelo',
       'MODELO_OBRIGATORIO',
       dados.modelo,
     );
-    const cor = validarTextoObrigatorio('Cor', 'COR_OBRIGATORIA', dados.cor);
+    const cor = normalizarEValidarTextoObrigatorio(
+      'Cor',
+      'COR_OBRIGATORIA',
+      dados.cor,
+    );
     const cadastradoEm = validarData(dados.cadastradoEm);
 
     const veiculo = new Veiculo(
