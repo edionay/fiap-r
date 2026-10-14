@@ -1,8 +1,5 @@
 import type { SituacaoVeiculo } from './situacao-veiculo';
-
-export const TipoEventoVeiculo = {
-  CADASTRADO: 'VEICULO_CADASTRADO',
-} as const;
+import { TipoEventoVeiculo } from './tipo-evento-veiculo';
 
 export interface DadosIniciaisVeiculo {
   readonly marca: string;
