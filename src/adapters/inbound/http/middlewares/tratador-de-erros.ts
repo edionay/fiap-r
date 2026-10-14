@@ -1,7 +1,9 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ValidateError } from '@tsoa/runtime';
+import { ErroDominio } from '../../../../domain/erro-dominio';
+import { ErroRequisicao } from '../erro-requisicao';
 
-interface RespostaDeErro {
+export interface RespostaDeErro {
   codigo: string;
   mensagem: string;
   detalhes?: unknown;
@@ -30,6 +32,27 @@ export const tratadorDeErros: ErrorRequestHandler = (
       codigo: 'ERRO_DE_VALIDACAO',
       mensagem: 'A validação da requisição falhou.',
       detalhes: erro.fields,
+    };
+
+    resposta.status(400).json(corpo);
+    return;
+  }
+
+  if (erro instanceof ErroRequisicao) {
+    const corpo: RespostaDeErro = {
+      codigo: erro.codigo,
+      mensagem: erro.message,
+      ...(erro.detalhes === undefined ? {} : { detalhes: erro.detalhes }),
+    };
+
+    resposta.status(400).json(corpo);
+    return;
+  }
+
+  if (erro instanceof ErroDominio) {
+    const corpo: RespostaDeErro = {
+      codigo: erro.codigo,
+      mensagem: erro.message,
     };
 
     resposta.status(422).json(corpo);

@@ -6,6 +6,7 @@ import type {
 import type { Request } from 'express';
 import type { DependenciasAplicacao } from '../adapters/inbound/http/app';
 import { ProntidaoController } from '../adapters/inbound/http/controllers/prontidao.controller';
+import { VeiculosController } from '../adapters/inbound/http/controllers/veiculos.controller';
 
 type ConstrutorSemArgumentos<T> = new () => T;
 
@@ -17,16 +18,33 @@ export const iocContainer: IocContainerFactory<Request> = (requisicao) => {
         (ProntidaoController as ServiceIdentifier<T>)
       ) {
         const dependencias = requisicao.app.locals
-          .dependencias as DependenciasAplicacao | undefined;
+          .dependencias as Partial<DependenciasAplicacao> | undefined;
 
-        if (dependencias === undefined) {
+        if (dependencias?.obterEstadoDeProntidao === undefined) {
           throw new Error(
-            'As dependências da aplicação não foram configuradas.',
+            'A dependência de prontidão não foi configurada.',
           );
         }
 
         return new ProntidaoController(
           dependencias.obterEstadoDeProntidao,
+        ) as unknown as T;
+      }
+
+      if (
+        identificador === (VeiculosController as ServiceIdentifier<T>)
+      ) {
+        const dependencias = requisicao.app.locals
+          .dependencias as Partial<DependenciasAplicacao> | undefined;
+
+        if (dependencias?.cadastrarVeiculo === undefined) {
+          throw new Error(
+            'A dependência de cadastro de veículo não foi configurada.',
+          );
+        }
+
+        return new VeiculosController(
+          dependencias.cadastrarVeiculo,
         ) as unknown as T;
       }
 
