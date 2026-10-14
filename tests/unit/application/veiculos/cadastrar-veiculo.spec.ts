@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CadastrarVeiculo } from '../../../../src/application/veiculos/cadastrar-veiculo';
 import { ErroDominio } from '../../../../src/domain/erro-dominio';
 import { SituacaoVeiculo } from '../../../../src/domain/situacao-veiculo';
-import { TipoEventoVeiculo } from '../../../../src/domain/veiculo-cadastrado';
+import { TipoEventoVeiculo } from '../../../../src/domain/tipo-evento-veiculo';
 
 const IDENTIFICADOR = '550e8400-e29b-41d4-a716-446655440000';
 const DATA_ATUAL = new Date('2026-10-14T12:00:00.000Z');
