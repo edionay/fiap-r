@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O núcleo de domínio representa o cadastro de um veículo, incluindo identificador, ano de fabricação, preço em centavos, situação inicial e evento de cadastro. A camada de aplicação possui o caso de uso de cadastro e contratos para relógio, geração de identificadores e persistência transacional com o histórico.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O núcleo de domínio representa o cadastro de um veículo, incluindo identificador, ano de fabricação, preço em centavos, situação inicial e evento de cadastro. A camada de aplicação possui o caso de uso de cadastro, e o adaptador PostgreSQL persiste veículo e histórico na mesma transação.
 
 ## Execução com Docker
 
