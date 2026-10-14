@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os casos de uso de veículos serão adicionados nas próximas entregas.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O núcleo de domínio já representa o cadastro de um veículo, incluindo identificador, ano de fabricação, preço em centavos, situação inicial e evento de cadastro. Os casos de uso serão adicionados nas próximas entregas.
 
 ## Execução com Docker
 
@@ -144,7 +144,7 @@ Os testes atuais cobrem configuração, saúde, prontidão, adaptador PostgreSQL
 TEST_DATABASE_URL=postgresql://veiculos:veiculos@localhost:5432/gestao_veiculos npm run test:integration:database
 ```
 
-As próximas funcionalidades devem incluir testes unitários para entidades, objetos de valor e casos de uso.
+O modelo de domínio possui testes unitários para a entidade Veículo e seus objetos de valor. As próximas funcionalidades devem incluir testes unitários para os casos de uso.
 
 ## Documentação
 
