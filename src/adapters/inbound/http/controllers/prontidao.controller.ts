@@ -24,7 +24,7 @@ export class ProntidaoController extends Controller {
   @SuccessResponse(200, 'Pronta')
   @Response<EstadoDeProntidao>(503, 'Não pronta')
   public async obterProntidao(): Promise<EstadoDeProntidao> {
-    const estado = await this.obterEstadoDeProntidao.executar();
+    const estado = await this.obterEstadoDeProntidao.obter();
 
     if (estado.status === 'not_ready') {
       this.setStatus(503);

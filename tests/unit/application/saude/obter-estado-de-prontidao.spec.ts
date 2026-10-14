@@ -10,7 +10,7 @@ describe('ObterEstadoDeProntidao', () => {
       verificadorSaudeBancoDados,
     );
 
-    await expect(casoDeUso.executar()).resolves.toEqual({ status: 'ready' });
+    await expect(casoDeUso.obter()).resolves.toEqual({ status: 'ready' });
   });
 
   it('retorna não pronto quando o banco de dados está indisponível', async () => {
@@ -21,7 +21,7 @@ describe('ObterEstadoDeProntidao', () => {
       verificadorSaudeBancoDados,
     );
 
-    await expect(casoDeUso.executar()).resolves.toEqual({
+    await expect(casoDeUso.obter()).resolves.toEqual({
       status: 'not_ready',
     });
   });

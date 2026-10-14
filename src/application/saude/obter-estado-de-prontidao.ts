@@ -9,7 +9,7 @@ export class ObterEstadoDeProntidao {
     private readonly verificadorSaudeBancoDados: VerificadorSaudeBancoDados,
   ) {}
 
-  public async executar(): Promise<EstadoDeProntidao> {
+  public async obter(): Promise<EstadoDeProntidao> {
     const estaPronto = await this.verificadorSaudeBancoDados.estaPronto();
 
     return { status: estaPronto ? 'ready' : 'not_ready' };
