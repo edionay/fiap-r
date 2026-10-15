@@ -30,7 +30,7 @@ function criarVeiculo(situacao: SituacaoVeiculo = SituacaoVeiculo.DISPONIVEL) {
 function prepararCasoDeUso(veiculo: Veiculo | null = criarVeiculo()) {
   const repositorioVeiculos = {
     buscarPorIdentificador: vi.fn().mockResolvedValue(veiculo),
-    editarComHistorico: vi.fn().mockResolvedValue(undefined),
+    editarComHistorico: vi.fn().mockResolvedValue(true),
   };
   const relogio = {
     agora: vi.fn().mockReturnValue(new Date(DATA_ATUALIZACAO)),
@@ -84,6 +84,7 @@ describe('EditarVeiculo', () => {
         },
         ocorridoEm: DATA_ATUALIZACAO.toISOString(),
       },
+      DATA_CADASTRO,
     );
   });
 
@@ -150,5 +151,21 @@ describe('EditarVeiculo', () => {
       }),
     );
     expect(repositorioVeiculos.editarComHistorico).not.toHaveBeenCalled();
+  });
+
+  it('informa conflito quando o veículo foi alterado concorrentemente', async () => {
+    const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
+    repositorioVeiculos.editarComHistorico.mockResolvedValue(false);
+
+    await expect(
+      casoDeUso.executar({
+        identificador: IDENTIFICADOR,
+        cor: 'Branco',
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ErroAplicacao>>({
+        codigo: 'VEICULO_ALTERADO_CONCORRENTEMENTE',
+      }),
+    );
   });
 });
