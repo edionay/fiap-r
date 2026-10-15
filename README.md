@@ -63,7 +63,7 @@ O código está organizado em:
 Na raiz do projeto, execute:
 
 ```bash
-docker compose up --build
+docker compose up
 ```
 
 Esse comando cria o PostgreSQL, executa as migrações e inicia a API. Quando os serviços estiverem prontos, a aplicação estará disponível em `http://localhost:3000`.
