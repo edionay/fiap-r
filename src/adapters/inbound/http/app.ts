@@ -2,6 +2,7 @@ import express, { type Express } from 'express';
 import type { ObterEstadoDeProntidao } from '../../../application/saude/obter-estado-de-prontidao';
 import type { CadastrarVeiculo } from '../../../application/veiculos/cadastrar-veiculo';
 import type { EditarVeiculo } from '../../../application/veiculos/editar-veiculo';
+import type { RegistrarVenda } from '../../../application/vendas/registrar-venda';
 import { RegisterRoutes } from './generated/routes';
 import {
   tratadorDeErros,
@@ -12,6 +13,7 @@ export interface DependenciasAplicacao {
   obterEstadoDeProntidao: ObterEstadoDeProntidao;
   cadastrarVeiculo: CadastrarVeiculo;
   editarVeiculo: EditarVeiculo;
+  registrarVenda: RegistrarVenda;
 }
 
 export function criarAplicacao(

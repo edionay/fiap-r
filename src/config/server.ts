@@ -2,11 +2,13 @@ import { criarAplicacao } from '../adapters/inbound/http/app';
 import { GeradorIdentificadoresUuid } from '../adapters/outbound/gerador-identificadores-uuid';
 import { criarPoolPostgres } from '../adapters/outbound/postgres/pool';
 import { RepositorioVeiculosPostgres } from '../adapters/outbound/postgres/repositorio-veiculos-postgres';
+import { RepositorioVendasPostgres } from '../adapters/outbound/postgres/repositorio-vendas-postgres';
 import { VerificadorSaudePostgres } from '../adapters/outbound/postgres/verificador-saude-postgres';
 import { RelogioSistema } from '../adapters/outbound/relogio-sistema';
 import { ObterEstadoDeProntidao } from '../application/saude/obter-estado-de-prontidao';
 import { CadastrarVeiculo } from '../application/veiculos/cadastrar-veiculo';
 import { EditarVeiculo } from '../application/veiculos/editar-veiculo';
+import { RegistrarVenda } from '../application/vendas/registrar-venda';
 import { carregarConfiguracao } from './env';
 
 const configuracao = carregarConfiguracao();
@@ -14,6 +16,7 @@ const pool = criarPoolPostgres(configuracao.bancoDados);
 const geradorIdentificadores = new GeradorIdentificadoresUuid();
 const verificadorSaudePostgres = new VerificadorSaudePostgres(pool);
 const repositorioVeiculos = new RepositorioVeiculosPostgres(pool);
+const repositorioVendas = new RepositorioVendasPostgres(pool);
 const obterEstadoDeProntidao = new ObterEstadoDeProntidao(
   verificadorSaudePostgres,
 );
@@ -24,11 +27,17 @@ const cadastrarVeiculo = new CadastrarVeiculo(
   relogio,
 );
 const editarVeiculo = new EditarVeiculo(repositorioVeiculos, relogio);
+const registrarVenda = new RegistrarVenda(
+  repositorioVeiculos,
+  repositorioVendas,
+  geradorIdentificadores,
+);
 
 const aplicacao = criarAplicacao({
   obterEstadoDeProntidao,
   cadastrarVeiculo,
   editarVeiculo,
+  registrarVenda,
 });
 
 const servidor = aplicacao.listen(configuracao.porta, () => {
