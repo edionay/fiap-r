@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro, edição e venda estão disponíveis em `POST /veiculos`, `PATCH /veiculos/{veiculoId}` e `POST /veiculos/{veiculoId}/vendas`. O adaptador PostgreSQL persiste cada alteração e sua data na mesma transação.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro, edição, venda e consulta estão disponíveis em `POST /veiculos`, `PATCH /veiculos/{veiculoId}`, `POST /veiculos/{veiculoId}/vendas` e `GET /veiculos`. O adaptador PostgreSQL persiste cada alteração e sua data na mesma transação.
 
 ## Princípio de implementação
 
@@ -180,6 +180,34 @@ Uma venda bem-sucedida retorna código `201`:
 ```
 
 Veículo inexistente retorna `404`. Uma segunda venda do mesmo veículo retorna `409`.
+
+## Consulta de veículos
+
+Consulte os veículos disponíveis com:
+
+```bash
+curl 'http://localhost:3000/veiculos?situacao=DISPONIVEL'
+```
+
+Para consultar os veículos vendidos, use `situacao=VENDIDO`. A resposta contém somente veículos com a situação informada, ordenados do menor para o maior preço anunciado:
+
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "marca": "Honda",
+    "modelo": "Civic",
+    "anoFabricacao": 2025,
+    "cor": "Preto",
+    "precoAnunciado": "75000.99",
+    "situacao": "DISPONIVEL",
+    "criadoEm": "2026-10-14T12:00:00.000Z",
+    "atualizadoEm": "2026-10-14T12:00:00.000Z"
+  }
+]
+```
+
+Situação ausente ou diferente de `DISPONIVEL` e `VENDIDO` retorna código `400`.
 
 ## Banco de dados
 

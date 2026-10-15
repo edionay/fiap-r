@@ -8,6 +8,7 @@ import { RelogioSistema } from '../adapters/outbound/relogio-sistema';
 import { ObterEstadoDeProntidao } from '../application/saude/obter-estado-de-prontidao';
 import { CadastrarVeiculo } from '../application/veiculos/cadastrar-veiculo';
 import { EditarVeiculo } from '../application/veiculos/editar-veiculo';
+import { ListarVeiculos } from '../application/veiculos/listar-veiculos';
 import { RegistrarVenda } from '../application/vendas/registrar-venda';
 import { carregarConfiguracao } from './env';
 
@@ -27,6 +28,7 @@ const cadastrarVeiculo = new CadastrarVeiculo(
   relogio,
 );
 const editarVeiculo = new EditarVeiculo(repositorioVeiculos, relogio);
+const listarVeiculos = new ListarVeiculos(repositorioVeiculos);
 const registrarVenda = new RegistrarVenda(
   repositorioVeiculos,
   repositorioVendas,
@@ -37,6 +39,7 @@ const aplicacao = criarAplicacao({
   obterEstadoDeProntidao,
   cadastrarVeiculo,
   editarVeiculo,
+  listarVeiculos,
   registrarVenda,
 });
 
