@@ -6,6 +6,10 @@ import type { ListarVeiculos } from '../../../application/veiculos/listar-veicul
 import type { RegistrarVenda } from '../../../application/vendas/registrar-venda';
 import { RegisterRoutes } from './generated/routes';
 import {
+  type EspecificacaoOpenApi,
+  registrarDocumentacaoApi,
+} from './documentacao-api';
+import {
   tratadorDeErros,
   tratadorDeRotaNaoEncontrada,
 } from './middlewares/tratador-de-erros';
@@ -20,6 +24,7 @@ export interface DependenciasAplicacao {
 
 export function criarAplicacao(
   dependencias: Partial<DependenciasAplicacao> = {},
+  especificacaoOpenApi?: EspecificacaoOpenApi,
 ): Express {
   const aplicacao = express();
 
@@ -27,6 +32,10 @@ export function criarAplicacao(
 
   aplicacao.disable('x-powered-by');
   aplicacao.use(express.json({ limit: '1mb' }));
+
+  if (especificacaoOpenApi !== undefined) {
+    registrarDocumentacaoApi(aplicacao, especificacaoOpenApi);
+  }
 
   RegisterRoutes(aplicacao);
 

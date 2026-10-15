@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { criarAplicacao } from '../adapters/inbound/http/app';
+import type { EspecificacaoOpenApi } from '../adapters/inbound/http/documentacao-api';
 import { GeradorIdentificadoresUuid } from '../adapters/outbound/gerador-identificadores-uuid';
 import { criarPoolPostgres } from '../adapters/outbound/postgres/pool';
 import { RepositorioVeiculosPostgres } from '../adapters/outbound/postgres/repositorio-veiculos-postgres';
@@ -11,6 +14,26 @@ import { EditarVeiculo } from '../application/veiculos/editar-veiculo';
 import { ListarVeiculos } from '../application/veiculos/listar-veiculos';
 import { RegistrarVenda } from '../application/vendas/registrar-venda';
 import { carregarConfiguracao } from './env';
+
+function carregarEspecificacaoOpenApi(): EspecificacaoOpenApi {
+  const caminho = resolve(
+    process.cwd(),
+    'dist',
+    'openapi',
+    'swagger.json',
+  );
+  const especificacao: unknown = JSON.parse(readFileSync(caminho, 'utf8'));
+
+  if (
+    typeof especificacao !== 'object' ||
+    especificacao === null ||
+    Array.isArray(especificacao)
+  ) {
+    throw new Error('A especificação OpenAPI gerada é inválida.');
+  }
+
+  return especificacao as EspecificacaoOpenApi;
+}
 
 const configuracao = carregarConfiguracao();
 const pool = criarPoolPostgres(configuracao.bancoDados);
@@ -35,13 +58,16 @@ const registrarVenda = new RegistrarVenda(
   geradorIdentificadores,
 );
 
-const aplicacao = criarAplicacao({
-  obterEstadoDeProntidao,
-  cadastrarVeiculo,
-  editarVeiculo,
-  listarVeiculos,
-  registrarVenda,
-});
+const aplicacao = criarAplicacao(
+  {
+    obterEstadoDeProntidao,
+    cadastrarVeiculo,
+    editarVeiculo,
+    listarVeiculos,
+    registrarVenda,
+  },
+  carregarEspecificacaoOpenApi(),
+);
 
 const servidor = aplicacao.listen(configuracao.porta, () => {
   console.log(

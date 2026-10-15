@@ -75,6 +75,8 @@ GET http://localhost:3000/health
 GET http://localhost:3000/ready
 ```
 
+A documentação interativa dos endpoints fica disponível em [http://localhost:3000/docs](http://localhost:3000/docs). O contrato OpenAPI em JSON pode ser consultado em [http://localhost:3000/openapi.json](http://localhost:3000/openapi.json).
+
 Para encerrar os serviços:
 
 ```bash
@@ -92,6 +94,8 @@ Os dados do PostgreSQL permanecem no volume `dados_postgres` após o encerrament
 - `GET /veiculos?situacao=VENDIDO`: lista os veículos vendidos.
 - `GET /health`: verifica o processo da API.
 - `GET /ready`: verifica a API e a conexão com o PostgreSQL.
+- `GET /docs`: abre a documentação interativa da API.
+- `GET /openapi.json`: retorna o contrato OpenAPI.
 
 Valores monetários são recebidos e devolvidos como strings decimais, por exemplo `"75000.99"`. Datas usam o formato ISO 8601 e o CPF é informado somente com os 11 dígitos.
 
