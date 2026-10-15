@@ -42,11 +42,11 @@ export interface DadosReconstrucaoVeiculo {
 }
 
 export interface DadosEdicaoVeiculo {
-  marca?: string;
-  modelo?: string;
-  anoFabricacao?: AnoFabricacao;
-  cor?: string;
-  precoAnunciado?: Preco;
+  marca?: string | undefined;
+  modelo?: string | undefined;
+  anoFabricacao?: AnoFabricacao | undefined;
+  cor?: string | undefined;
+  precoAnunciado?: Preco | undefined;
 }
 
 export interface ResultadoEdicaoVeiculo {

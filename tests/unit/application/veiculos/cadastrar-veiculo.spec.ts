@@ -31,7 +31,7 @@ function prepararCasoDeUso() {
   };
 }
 
-function comandoValido() {
+function dadosValidos() {
   return {
     marca: ' Honda ',
     modelo: ' Civic ',
@@ -45,7 +45,7 @@ describe('CadastrarVeiculo', () => {
   it('cadastra o veículo e seu evento por uma única operação de persistência', async () => {
     const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
 
-    const resultado = await casoDeUso.executar(comandoValido());
+    const resultado = await casoDeUso.executar(dadosValidos());
 
     expect(resultado).toEqual({
       identificador: IDENTIFICADOR,
@@ -85,7 +85,7 @@ describe('CadastrarVeiculo', () => {
   it('obtém o identificador e a data pelas portas da aplicação', async () => {
     const { casoDeUso, geradorIdentificadores, relogio } = prepararCasoDeUso();
 
-    await casoDeUso.executar(comandoValido());
+    await casoDeUso.executar(dadosValidos());
 
     expect(geradorIdentificadores.gerar).toHaveBeenCalledOnce();
     expect(relogio.agora).toHaveBeenCalledOnce();
@@ -97,7 +97,7 @@ describe('CadastrarVeiculo', () => {
 
     await expect(
       casoDeUso.executar({
-        ...comandoValido(),
+        ...dadosValidos(),
         anoFabricacao: 2028,
       }),
     ).resolves.toMatchObject({ anoFabricacao: 2028 });
@@ -108,7 +108,7 @@ describe('CadastrarVeiculo', () => {
 
     await expect(
       casoDeUso.executar({
-        ...comandoValido(),
+        ...dadosValidos(),
         marca: '   ',
       }),
     ).rejects.toEqual(
@@ -124,7 +124,7 @@ describe('CadastrarVeiculo', () => {
 
     await expect(
       casoDeUso.executar({
-        ...comandoValido(),
+        ...dadosValidos(),
         precoAnunciadoCentavos: 0,
       }),
     ).rejects.toEqual(
@@ -140,7 +140,7 @@ describe('CadastrarVeiculo', () => {
       prepararCasoDeUso();
     geradorIdentificadores.gerar.mockReturnValue('identificador-invalido');
 
-    await expect(casoDeUso.executar(comandoValido())).rejects.toEqual(
+    await expect(casoDeUso.executar(dadosValidos())).rejects.toEqual(
       expect.objectContaining<Partial<ErroDominio>>({
         codigo: 'IDENTIFICADOR_VEICULO_INVALIDO',
       }),

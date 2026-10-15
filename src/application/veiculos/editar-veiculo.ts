@@ -2,18 +2,21 @@ import { AnoFabricacao } from '../../domain/ano-fabricacao';
 import { IdentificadorVeiculo } from '../../domain/identificador-veiculo';
 import { Preco } from '../../domain/preco';
 import type { SituacaoVeiculo } from '../../domain/situacao-veiculo';
-import type { DadosEdicaoVeiculo, Veiculo } from '../../domain/veiculo';
+import type {
+  DadosEdicaoVeiculo as DadosEdicaoVeiculoDominio,
+  Veiculo,
+} from '../../domain/veiculo';
 import { ErroAplicacao } from '../erro-aplicacao';
 import type { Relogio } from '../ports/relogio';
 import type { RepositorioEdicaoVeiculos } from '../ports/repositorio-veiculos';
 
-export interface ComandoEditarVeiculo {
+export interface DadosEdicaoVeiculo {
   identificador: string;
-  marca?: string;
-  modelo?: string;
-  anoFabricacao?: number;
-  cor?: string;
-  precoAnunciadoCentavos?: number;
+  marca?: string | undefined;
+  modelo?: string | undefined;
+  anoFabricacao?: number | undefined;
+  cor?: string | undefined;
+  precoAnunciadoCentavos?: number | undefined;
 }
 
 export interface ResultadoEditarVeiculo {
@@ -29,28 +32,21 @@ export interface ResultadoEditarVeiculo {
 }
 
 function criarDadosEdicao(
-  comando: ComandoEditarVeiculo,
+  dados: DadosEdicaoVeiculo,
   anoAtual: number,
-): DadosEdicaoVeiculo {
+): DadosEdicaoVeiculoDominio {
   return {
-    ...(comando.marca === undefined ? {} : { marca: comando.marca }),
-    ...(comando.modelo === undefined ? {} : { modelo: comando.modelo }),
-    ...(comando.anoFabricacao === undefined
-      ? {}
-      : {
-          anoFabricacao: AnoFabricacao.criar(
-            comando.anoFabricacao,
-            anoAtual,
-          ),
-        }),
-    ...(comando.cor === undefined ? {} : { cor: comando.cor }),
-    ...(comando.precoAnunciadoCentavos === undefined
-      ? {}
-      : {
-          precoAnunciado: Preco.criarEmCentavos(
-            comando.precoAnunciadoCentavos,
-          ),
-        }),
+    marca: dados.marca,
+    modelo: dados.modelo,
+    anoFabricacao:
+      dados.anoFabricacao === undefined
+        ? undefined
+        : AnoFabricacao.criar(dados.anoFabricacao, anoAtual),
+    cor: dados.cor,
+    precoAnunciado:
+      dados.precoAnunciadoCentavos === undefined
+        ? undefined
+        : Preco.criarEmCentavos(dados.precoAnunciadoCentavos),
   };
 }
 
@@ -75,9 +71,9 @@ export class EditarVeiculo {
   ) {}
 
   public async executar(
-    comando: ComandoEditarVeiculo,
+    dados: DadosEdicaoVeiculo,
   ): Promise<ResultadoEditarVeiculo> {
-    const identificador = IdentificadorVeiculo.criar(comando.identificador);
+    const identificador = IdentificadorVeiculo.criar(dados.identificador);
     const veiculo =
       await this.repositorioVeiculos.buscarPorIdentificador(identificador);
 
@@ -91,7 +87,7 @@ export class EditarVeiculo {
     const atualizadoEm = this.relogio.agora();
     const atualizadoEmEsperado = veiculo.atualizadoEm;
     const dadosEdicao = criarDadosEdicao(
-      comando,
+      dados,
       atualizadoEm.getUTCFullYear(),
     );
     const resultado = veiculo.editar(dadosEdicao, atualizadoEm);

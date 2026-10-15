@@ -10,7 +10,6 @@ import {
 } from '@tsoa/runtime';
 import {
   EditarVeiculo,
-  type ComandoEditarVeiculo,
   type ResultadoEditarVeiculo,
 } from '../../../../application/veiculos/editar-veiculo';
 import type { SituacaoVeiculo } from '../../../../domain/situacao-veiculo';
@@ -39,32 +38,6 @@ export interface RespostaVeiculoEditado {
   situacao: SituacaoVeiculo;
   criadoEm: Date;
   atualizadoEm: Date;
-}
-
-function criarComando(
-  veiculoId: string,
-  requisicao: RequisicaoEdicaoVeiculo,
-): ComandoEditarVeiculo {
-  return {
-    identificador: veiculoId,
-    ...(requisicao.marca === undefined
-      ? {}
-      : { marca: requisicao.marca }),
-    ...(requisicao.modelo === undefined
-      ? {}
-      : { modelo: requisicao.modelo }),
-    ...(requisicao.anoFabricacao === undefined
-      ? {}
-      : { anoFabricacao: requisicao.anoFabricacao }),
-    ...(requisicao.cor === undefined ? {} : { cor: requisicao.cor }),
-    ...(requisicao.precoAnunciado === undefined
-      ? {}
-      : {
-          precoAnunciadoCentavos: converterPrecoParaCentavos(
-            requisicao.precoAnunciado,
-          ),
-        }),
-  };
 }
 
 function criarResposta(
@@ -100,9 +73,17 @@ export class EdicaoVeiculosController extends Controller {
     @Path() veiculoId: string,
     @Body() requisicao: RequisicaoEdicaoVeiculo,
   ): Promise<RespostaVeiculoEditado> {
-    const resultado = await this.editarVeiculo.executar(
-      criarComando(veiculoId, requisicao),
-    );
+    const resultado = await this.editarVeiculo.executar({
+      identificador: veiculoId,
+      marca: requisicao.marca,
+      modelo: requisicao.modelo,
+      anoFabricacao: requisicao.anoFabricacao,
+      cor: requisicao.cor,
+      precoAnunciadoCentavos:
+        requisicao.precoAnunciado === undefined
+          ? undefined
+          : converterPrecoParaCentavos(requisicao.precoAnunciado),
+    });
 
     return criarResposta(resultado);
   }
