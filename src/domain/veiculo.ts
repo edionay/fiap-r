@@ -208,6 +208,33 @@ export class Veiculo {
     );
   }
 
+  public vender(vendidoEm: Date): Veiculo {
+    if (this.situacao === SituacaoVeiculo.VENDIDO) {
+      throw new ErroDominio(
+        'VEICULO_JA_VENDIDO',
+        'O veículo informado já foi vendido.',
+      );
+    }
+
+    const dataVenda = copiarDataValida(
+      vendidoEm,
+      'DATA_VENDA_INVALIDA',
+      'A data da venda deve ser válida.',
+    );
+
+    return new Veiculo(
+      this.identificador,
+      this.marca,
+      this.modelo,
+      this.anoFabricacao,
+      this.cor,
+      this.precoAnunciado,
+      SituacaoVeiculo.VENDIDO,
+      this.criadoEmInterno,
+      dataVenda,
+    );
+  }
+
   public get criadoEm(): Date {
     return new Date(this.criadoEmInterno.getTime());
   }

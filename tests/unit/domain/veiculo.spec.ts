@@ -163,4 +163,38 @@ describe('Veiculo', () => {
       }),
     );
   });
+
+  it('marca um veículo disponível como vendido', () => {
+    const veiculo = reconstruirVeiculo();
+
+    const vendido = veiculo.vender(DATA_ATUALIZACAO);
+
+    expect(vendido.identificador).toBe(IDENTIFICADOR);
+    expect(vendido.marca).toBe('Honda');
+    expect(vendido.situacao).toBe(SituacaoVeiculo.VENDIDO);
+    expect(vendido.criadoEm).toEqual(DATA_CADASTRO);
+    expect(vendido.atualizadoEm).toEqual(DATA_ATUALIZACAO);
+  });
+
+  it('rejeita a venda de um veículo já vendido', () => {
+    const veiculo = reconstruirVeiculo({
+      situacao: SituacaoVeiculo.VENDIDO,
+    });
+
+    expect(() => veiculo.vender(DATA_ATUALIZACAO)).toThrow(
+      expect.objectContaining<Partial<ErroDominio>>({
+        codigo: 'VEICULO_JA_VENDIDO',
+      }),
+    );
+  });
+
+  it('rejeita uma data de venda inválida', () => {
+    const veiculo = reconstruirVeiculo();
+
+    expect(() => veiculo.vender(new Date('inválida'))).toThrow(
+      expect.objectContaining<Partial<ErroDominio>>({
+        codigo: 'DATA_VENDA_INVALIDA',
+      }),
+    );
+  });
 });
