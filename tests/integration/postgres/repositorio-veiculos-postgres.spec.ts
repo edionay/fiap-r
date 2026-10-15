@@ -4,6 +4,7 @@ import { RepositorioVeiculosPostgres } from '../../../src/adapters/outbound/post
 import { AnoFabricacao } from '../../../src/domain/ano-fabricacao';
 import { IdentificadorVeiculo } from '../../../src/domain/identificador-veiculo';
 import { Preco } from '../../../src/domain/preco';
+import { SituacaoVeiculo } from '../../../src/domain/situacao-veiculo';
 import { Veiculo } from '../../../src/domain/veiculo';
 
 const urlBancoDados = process.env.TEST_DATABASE_URL ?? '';
@@ -12,16 +13,28 @@ const VEICULO_DOIS = '10000000-0000-4000-8000-000000000002';
 const DATA_CADASTRO = new Date('2026-10-14T12:00:00.000Z');
 const DATA_ATUALIZACAO = new Date('2026-10-15T14:30:00.000Z');
 
-function criarVeiculo(identificador: string) {
+function criarVeiculo(
+  identificador: string,
+  precoAnunciadoCentavos = 7_500_099,
+) {
   return Veiculo.cadastrar({
     identificador: IdentificadorVeiculo.criar(identificador),
     marca: 'Honda',
     modelo: 'Civic',
     anoFabricacao: AnoFabricacao.criar(2025, 2026),
     cor: 'Preto',
-    precoAnunciado: Preco.criarEmCentavos(7_500_099),
+    precoAnunciado: Preco.criarEmCentavos(precoAnunciadoCentavos),
     cadastradoEm: DATA_CADASTRO,
   });
+}
+
+function identificadoresDosVeiculosDaExecucao(veiculos: Veiculo[]) {
+  return veiculos
+    .map((veiculo) => veiculo.identificador.valor)
+    .filter(
+      (identificador) =>
+        identificador === VEICULO_UM || identificador === VEICULO_DOIS,
+    );
 }
 
 describe.skipIf(urlBancoDados === '')('RepositorioVeiculosPostgres', () => {
@@ -122,6 +135,40 @@ describe.skipIf(urlBancoDados === '')('RepositorioVeiculosPostgres', () => {
     expect(veiculo?.criadoEm).toEqual(DATA_CADASTRO);
     expect(veiculo?.atualizadoEm).toEqual(DATA_CADASTRO);
     expect(inexistente).toBeNull();
+  });
+
+  it('lista veículos por situação em ordem crescente de preço', async () => {
+    await repositorio.cadastrar(criarVeiculo(VEICULO_UM, 9_000_000));
+    await repositorio.cadastrar(criarVeiculo(VEICULO_DOIS, 7_000_000));
+
+    const disponiveis = await repositorio.listarPorSituacao(
+      SituacaoVeiculo.DISPONIVEL,
+    );
+
+    expect(identificadoresDosVeiculosDaExecucao(disponiveis)).toEqual([
+      VEICULO_DOIS,
+      VEICULO_UM,
+    ]);
+
+    await pool.query(
+      "UPDATE veiculos SET situacao = 'VENDIDO' WHERE id = ANY($1::uuid[])",
+      [[VEICULO_UM, VEICULO_DOIS]],
+    );
+
+    const vendidos = await repositorio.listarPorSituacao(
+      SituacaoVeiculo.VENDIDO,
+    );
+    const disponiveisAposVenda = await repositorio.listarPorSituacao(
+      SituacaoVeiculo.DISPONIVEL,
+    );
+
+    expect(identificadoresDosVeiculosDaExecucao(vendidos)).toEqual([
+      VEICULO_DOIS,
+      VEICULO_UM,
+    ]);
+    expect(identificadoresDosVeiculosDaExecucao(disponiveisAposVenda)).toEqual(
+      [],
+    );
   });
 
   it('atualiza o veículo e registra a data da alteração', async () => {

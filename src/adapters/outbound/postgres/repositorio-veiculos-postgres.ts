@@ -1,8 +1,10 @@
 import type { Pool, PoolClient } from 'pg';
+import type { ConsultaVeiculos } from '../../../application/ports/consulta-veiculos';
 import type { RepositorioVeiculos } from '../../../application/ports/repositorio-veiculos';
 import { AnoFabricacao } from '../../../domain/ano-fabricacao';
-import type { IdentificadorVeiculo } from '../../../domain/identificador-veiculo';
+import { IdentificadorVeiculo } from '../../../domain/identificador-veiculo';
 import { Preco } from '../../../domain/preco';
+import type { SituacaoVeiculo } from '../../../domain/situacao-veiculo';
 import { Veiculo } from '../../../domain/veiculo';
 
 interface RegistroVeiculo {
@@ -30,7 +32,28 @@ function converterDecimalParaCentavos(valor: string): number {
   return Number(parteInteira) * 100 + Number(parteDecimal.padEnd(2, '0'));
 }
 
-export class RepositorioVeiculosPostgres implements RepositorioVeiculos {
+function reconstruirVeiculo(registro: RegistroVeiculo): Veiculo {
+  return Veiculo.reconstruir({
+    identificador: IdentificadorVeiculo.criar(registro.id),
+    marca: registro.marca,
+    modelo: registro.modelo,
+    anoFabricacao: AnoFabricacao.criar(
+      registro.anoFabricacao,
+      registro.atualizadoEm.getUTCFullYear(),
+    ),
+    cor: registro.cor,
+    precoAnunciado: Preco.criarEmCentavos(
+      converterDecimalParaCentavos(registro.precoAnunciado),
+    ),
+    situacao: registro.situacao,
+    criadoEm: registro.criadoEm,
+    atualizadoEm: registro.atualizadoEm,
+  });
+}
+
+export class RepositorioVeiculosPostgres
+  implements RepositorioVeiculos, ConsultaVeiculos
+{
   public constructor(private readonly pool: Pool) {}
 
   public async cadastrar(veiculo: Veiculo): Promise<void> {
@@ -106,22 +129,32 @@ export class RepositorioVeiculosPostgres implements RepositorioVeiculos {
       return null;
     }
 
-    return Veiculo.reconstruir({
-      identificador,
-      marca: registro.marca,
-      modelo: registro.modelo,
-      anoFabricacao: AnoFabricacao.criar(
-        registro.anoFabricacao,
-        registro.atualizadoEm.getUTCFullYear(),
-      ),
-      cor: registro.cor,
-      precoAnunciado: Preco.criarEmCentavos(
-        converterDecimalParaCentavos(registro.precoAnunciado),
-      ),
-      situacao: registro.situacao,
-      criadoEm: registro.criadoEm,
-      atualizadoEm: registro.atualizadoEm,
-    });
+    return reconstruirVeiculo(registro);
+  }
+
+  public async listarPorSituacao(
+    situacao: SituacaoVeiculo,
+  ): Promise<Veiculo[]> {
+    const resultado = await this.pool.query<RegistroVeiculo>(
+      `
+        SELECT
+          id,
+          marca,
+          modelo,
+          ano_fabricacao AS "anoFabricacao",
+          cor,
+          preco_anunciado AS "precoAnunciado",
+          situacao,
+          criado_em AS "criadoEm",
+          atualizado_em AS "atualizadoEm"
+        FROM veiculos
+        WHERE situacao = $1
+        ORDER BY preco_anunciado ASC, id ASC
+      `,
+      [situacao],
+    );
+
+    return resultado.rows.map(reconstruirVeiculo);
   }
 
   public async editar(veiculo: Veiculo): Promise<void> {
