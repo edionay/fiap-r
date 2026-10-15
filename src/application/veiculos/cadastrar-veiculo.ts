@@ -48,7 +48,7 @@ export class CadastrarVeiculo {
     const identificador = IdentificadorVeiculo.criar(
       this.geradorIdentificadores.gerar(),
     );
-    const { veiculo, evento } = Veiculo.cadastrar({
+    const veiculo = Veiculo.cadastrar({
       identificador,
       marca: dados.marca,
       modelo: dados.modelo,
@@ -58,7 +58,7 @@ export class CadastrarVeiculo {
       cadastradoEm,
     });
 
-    await this.repositorioVeiculos.cadastrarComHistorico(veiculo, evento);
+    await this.repositorioVeiculos.cadastrar(veiculo);
 
     return {
       identificador: veiculo.identificador.valor,

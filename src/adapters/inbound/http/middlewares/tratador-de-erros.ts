@@ -6,12 +6,10 @@ import { ErroRequisicao } from '../erro-requisicao';
 
 const STATUS_ERROS_APLICACAO: Readonly<Record<string, number>> = {
   VEICULO_NAO_ENCONTRADO: 404,
-  VEICULO_ALTERADO_CONCORRENTEMENTE: 409,
 };
 
 const STATUS_ERROS_DOMINIO: Readonly<Record<string, number>> = {
   IDENTIFICADOR_VEICULO_INVALIDO: 400,
-  VEICULO_NAO_DISPONIVEL: 409,
 };
 
 export interface RespostaDeErro {

@@ -29,7 +29,20 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro e edição estão disponíveis em `POST /veiculos` e `PATCH /veiculos/{veiculoId}`. O adaptador PostgreSQL persiste cada mudança com seu histórico na mesma transação e protege a edição contra alterações concorrentes.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro e edição estão disponíveis em `POST /veiculos` e `PATCH /veiculos/{veiculoId}`. O adaptador PostgreSQL atualiza o veículo e registra a data da alteração na mesma transação.
+
+## Princípio de implementação
+
+A solução prioriza as fronteiras da Arquitetura Hexagonal e implementações diretas. Funcionalidades adicionais, padrões opcionais e casos extremos não previstos nos requisitos não devem aumentar a complexidade do código.
+
+O fluxo de edição segue estes passos:
+
+1. Receber o identificador e os novos dados.
+2. Buscar o veículo.
+3. Validar os dados básicos.
+4. Atualizar o registro.
+5. Registrar a data da alteração.
+6. Retornar o veículo atualizado.
 
 ## Execução com Docker
 
@@ -136,9 +149,9 @@ curl --request PATCH http://localhost:3000/veiculos/550e8400-e29b-41d4-a716-4466
   }'
 ```
 
-É possível alterar `marca`, `modelo`, `anoFabricacao`, `cor` e `precoAnunciado`. Campos omitidos permanecem inalterados. Uma requisição sem mudanças efetivas retorna o estado atual sem modificar a data de atualização ou criar histórico.
+É possível alterar `marca`, `modelo`, `anoFabricacao`, `cor` e `precoAnunciado`. Campos omitidos permanecem inalterados. Toda edição bem-sucedida atualiza `atualizadoEm` e registra a data da alteração.
 
-Uma edição bem-sucedida retorna código `200`. Veículo inexistente retorna `404`, enquanto veículo vendido ou alterado por uma operação concorrente retorna `409`.
+Uma edição bem-sucedida retorna código `200`. Veículo inexistente retorna `404` e dados inválidos retornam `400` ou `422`, conforme a camada que identifica o erro.
 
 ## Banco de dados
 

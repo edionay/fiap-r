@@ -2,14 +2,15 @@ import { describe, expect, it, vi } from 'vitest';
 import { CadastrarVeiculo } from '../../../../src/application/veiculos/cadastrar-veiculo';
 import { ErroDominio } from '../../../../src/domain/erro-dominio';
 import { SituacaoVeiculo } from '../../../../src/domain/situacao-veiculo';
-import { TipoEventoVeiculo } from '../../../../src/domain/tipo-evento-veiculo';
 
 const IDENTIFICADOR = '550e8400-e29b-41d4-a716-446655440000';
 const DATA_ATUAL = new Date('2026-10-14T12:00:00.000Z');
 
 function prepararCasoDeUso() {
   const repositorioVeiculos = {
-    cadastrarComHistorico: vi.fn().mockResolvedValue(undefined),
+    cadastrar: vi.fn().mockResolvedValue(undefined),
+    buscarPorIdentificador: vi.fn(),
+    editar: vi.fn(),
   };
   const geradorIdentificadores = {
     gerar: vi.fn().mockReturnValue(IDENTIFICADOR),
@@ -23,12 +24,7 @@ function prepararCasoDeUso() {
     relogio,
   );
 
-  return {
-    casoDeUso,
-    geradorIdentificadores,
-    relogio,
-    repositorioVeiculos,
-  };
+  return { casoDeUso, geradorIdentificadores, relogio, repositorioVeiculos };
 }
 
 function dadosValidos() {
@@ -42,7 +38,7 @@ function dadosValidos() {
 }
 
 describe('CadastrarVeiculo', () => {
-  it('cadastra o veículo e seu evento por uma única operação de persistência', async () => {
+  it('cadastra e retorna o veículo', async () => {
     const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
 
     const resultado = await casoDeUso.executar(dadosValidos());
@@ -58,27 +54,13 @@ describe('CadastrarVeiculo', () => {
       criadoEm: DATA_ATUAL,
       atualizadoEm: DATA_ATUAL,
     });
-    expect(repositorioVeiculos.cadastrarComHistorico).toHaveBeenCalledOnce();
-    expect(repositorioVeiculos.cadastrarComHistorico).toHaveBeenCalledWith(
+    expect(repositorioVeiculos.cadastrar).toHaveBeenCalledWith(
       expect.objectContaining({
         marca: 'Honda',
         modelo: 'Civic',
         cor: 'Preto',
         situacao: SituacaoVeiculo.DISPONIVEL,
       }),
-      {
-        tipo: TipoEventoVeiculo.CADASTRADO,
-        veiculoId: IDENTIFICADOR,
-        dados: {
-          marca: 'Honda',
-          modelo: 'Civic',
-          anoFabricacao: 2025,
-          cor: 'Preto',
-          precoAnunciadoCentavos: 7_500_000,
-          situacao: SituacaoVeiculo.DISPONIVEL,
-        },
-        ocorridoEm: DATA_ATUAL.toISOString(),
-      },
     );
   });
 
@@ -96,10 +78,7 @@ describe('CadastrarVeiculo', () => {
     relogio.agora.mockReturnValue(new Date('2026-12-31T23:30:00.000-03:00'));
 
     await expect(
-      casoDeUso.executar({
-        ...dadosValidos(),
-        anoFabricacao: 2028,
-      }),
+      casoDeUso.executar({ ...dadosValidos(), anoFabricacao: 2028 }),
     ).resolves.toMatchObject({ anoFabricacao: 2028 });
   });
 
@@ -107,32 +86,24 @@ describe('CadastrarVeiculo', () => {
     const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
 
     await expect(
-      casoDeUso.executar({
-        ...dadosValidos(),
-        marca: '   ',
-      }),
+      casoDeUso.executar({ ...dadosValidos(), marca: '   ' }),
     ).rejects.toEqual(
       expect.objectContaining<Partial<ErroDominio>>({
         codigo: 'MARCA_OBRIGATORIA',
       }),
     );
-    expect(repositorioVeiculos.cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(repositorioVeiculos.cadastrar).not.toHaveBeenCalled();
   });
 
   it('não persiste quando o preço é inválido', async () => {
     const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
 
     await expect(
-      casoDeUso.executar({
-        ...dadosValidos(),
-        precoAnunciadoCentavos: 0,
-      }),
+      casoDeUso.executar({ ...dadosValidos(), precoAnunciadoCentavos: 0 }),
     ).rejects.toEqual(
-      expect.objectContaining<Partial<ErroDominio>>({
-        codigo: 'PRECO_INVALIDO',
-      }),
+      expect.objectContaining<Partial<ErroDominio>>({ codigo: 'PRECO_INVALIDO' }),
     );
-    expect(repositorioVeiculos.cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(repositorioVeiculos.cadastrar).not.toHaveBeenCalled();
   });
 
   it('não persiste quando o identificador gerado é inválido', async () => {
@@ -145,6 +116,6 @@ describe('CadastrarVeiculo', () => {
         codigo: 'IDENTIFICADOR_VEICULO_INVALIDO',
       }),
     );
-    expect(repositorioVeiculos.cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(repositorioVeiculos.cadastrar).not.toHaveBeenCalled();
   });
 });

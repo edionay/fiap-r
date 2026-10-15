@@ -8,7 +8,7 @@ import type {
 } from '../../domain/veiculo';
 import { ErroAplicacao } from '../erro-aplicacao';
 import type { Relogio } from '../ports/relogio';
-import type { RepositorioEdicaoVeiculos } from '../ports/repositorio-veiculos';
+import type { RepositorioVeiculos } from '../ports/repositorio-veiculos';
 
 export interface DadosEdicaoVeiculo {
   identificador: string;
@@ -66,7 +66,7 @@ function criarResultado(veiculo: Veiculo): ResultadoEditarVeiculo {
 
 export class EditarVeiculo {
   public constructor(
-    private readonly repositorioVeiculos: RepositorioEdicaoVeiculos,
+    private readonly repositorioVeiculos: RepositorioVeiculos,
     private readonly relogio: Relogio,
   ) {}
 
@@ -85,29 +85,14 @@ export class EditarVeiculo {
     }
 
     const atualizadoEm = this.relogio.agora();
-    const atualizadoEmEsperado = veiculo.atualizadoEm;
     const dadosEdicao = criarDadosEdicao(
       dados,
       atualizadoEm.getUTCFullYear(),
     );
-    const resultado = veiculo.editar(dadosEdicao, atualizadoEm);
+    const veiculoAtualizado = veiculo.editar(dadosEdicao, atualizadoEm);
 
-    if (resultado.evento !== null) {
-      const edicaoRealizada =
-        await this.repositorioVeiculos.editarComHistorico(
-          resultado.veiculo,
-          resultado.evento,
-          atualizadoEmEsperado,
-        );
+    await this.repositorioVeiculos.editar(veiculoAtualizado);
 
-      if (!edicaoRealizada) {
-        throw new ErroAplicacao(
-          'VEICULO_ALTERADO_CONCORRENTEMENTE',
-          'O veículo foi alterado por outra operação.',
-        );
-      }
-    }
-
-    return criarResultado(resultado.veiculo);
+    return criarResultado(veiculoAtualizado);
   }
 }

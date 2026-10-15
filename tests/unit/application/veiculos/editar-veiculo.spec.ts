@@ -6,14 +6,13 @@ import { ErroDominio } from '../../../../src/domain/erro-dominio';
 import { IdentificadorVeiculo } from '../../../../src/domain/identificador-veiculo';
 import { Preco } from '../../../../src/domain/preco';
 import { SituacaoVeiculo } from '../../../../src/domain/situacao-veiculo';
-import { TipoEventoVeiculo } from '../../../../src/domain/tipo-evento-veiculo';
 import { Veiculo } from '../../../../src/domain/veiculo';
 
 const IDENTIFICADOR = '550e8400-e29b-41d4-a716-446655440000';
 const DATA_CADASTRO = new Date('2026-10-14T12:00:00.000Z');
 const DATA_ATUALIZACAO = new Date('2026-10-15T14:30:00.000Z');
 
-function criarVeiculo(situacao: SituacaoVeiculo = SituacaoVeiculo.DISPONIVEL) {
+function criarVeiculo() {
   return Veiculo.reconstruir({
     identificador: IdentificadorVeiculo.criar(IDENTIFICADOR),
     marca: 'Honda',
@@ -21,7 +20,7 @@ function criarVeiculo(situacao: SituacaoVeiculo = SituacaoVeiculo.DISPONIVEL) {
     anoFabricacao: AnoFabricacao.criar(2025, 2026),
     cor: 'Preto',
     precoAnunciado: Preco.criarEmCentavos(7_500_000),
-    situacao,
+    situacao: SituacaoVeiculo.DISPONIVEL,
     criadoEm: DATA_CADASTRO,
     atualizadoEm: DATA_CADASTRO,
   });
@@ -29,8 +28,9 @@ function criarVeiculo(situacao: SituacaoVeiculo = SituacaoVeiculo.DISPONIVEL) {
 
 function prepararCasoDeUso(veiculo: Veiculo | null = criarVeiculo()) {
   const repositorioVeiculos = {
+    cadastrar: vi.fn(),
     buscarPorIdentificador: vi.fn().mockResolvedValue(veiculo),
-    editarComHistorico: vi.fn().mockResolvedValue(true),
+    editar: vi.fn().mockResolvedValue(undefined),
   };
   const relogio = {
     agora: vi.fn().mockReturnValue(new Date(DATA_ATUALIZACAO)),
@@ -41,7 +41,7 @@ function prepararCasoDeUso(veiculo: Veiculo | null = criarVeiculo()) {
 }
 
 describe('EditarVeiculo', () => {
-  it('edita o veículo e seu histórico por uma única operação de persistência', async () => {
+  it('busca, valida, atualiza e retorna o veículo', async () => {
     const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
 
     const resultado = await casoDeUso.executar({
@@ -65,40 +65,12 @@ describe('EditarVeiculo', () => {
     expect(repositorioVeiculos.buscarPorIdentificador).toHaveBeenCalledWith(
       expect.objectContaining({ valor: IDENTIFICADOR }),
     );
-    expect(repositorioVeiculos.editarComHistorico).toHaveBeenCalledOnce();
-    expect(repositorioVeiculos.editarComHistorico).toHaveBeenCalledWith(
+    expect(repositorioVeiculos.editar).toHaveBeenCalledWith(
       expect.objectContaining({
         marca: 'Toyota',
         situacao: SituacaoVeiculo.DISPONIVEL,
       }),
-      {
-        tipo: TipoEventoVeiculo.EDITADO,
-        veiculoId: IDENTIFICADOR,
-        alteracoes: {
-          marca: { anterior: 'Honda', atual: 'Toyota' },
-          anoFabricacao: { anterior: 2025, atual: 2026 },
-          precoAnunciadoCentavos: {
-            anterior: 7_500_000,
-            atual: 8_000_000,
-          },
-        },
-        ocorridoEm: DATA_ATUALIZACAO.toISOString(),
-      },
-      DATA_CADASTRO,
     );
-  });
-
-  it('não persiste quando os valores informados não alteram o veículo', async () => {
-    const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
-
-    const resultado = await casoDeUso.executar({
-      identificador: IDENTIFICADOR,
-      marca: ' Honda ',
-      precoAnunciadoCentavos: 7_500_000,
-    });
-
-    expect(resultado.atualizadoEm).toEqual(DATA_CADASTRO);
-    expect(repositorioVeiculos.editarComHistorico).not.toHaveBeenCalled();
   });
 
   it('rejeita a edição quando o veículo não existe', async () => {
@@ -106,35 +78,14 @@ describe('EditarVeiculo', () => {
       prepararCasoDeUso(null);
 
     await expect(
-      casoDeUso.executar({
-        identificador: IDENTIFICADOR,
-        cor: 'Branco',
-      }),
+      casoDeUso.executar({ identificador: IDENTIFICADOR, cor: 'Branco' }),
     ).rejects.toEqual(
       expect.objectContaining<Partial<ErroAplicacao>>({
         codigo: 'VEICULO_NAO_ENCONTRADO',
       }),
     );
     expect(relogio.agora).not.toHaveBeenCalled();
-    expect(repositorioVeiculos.editarComHistorico).not.toHaveBeenCalled();
-  });
-
-  it('rejeita a edição de um veículo vendido sem persistir mudanças', async () => {
-    const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso(
-      criarVeiculo(SituacaoVeiculo.VENDIDO),
-    );
-
-    await expect(
-      casoDeUso.executar({
-        identificador: IDENTIFICADOR,
-        cor: 'Branco',
-      }),
-    ).rejects.toEqual(
-      expect.objectContaining<Partial<ErroDominio>>({
-        codigo: 'VEICULO_NAO_DISPONIVEL',
-      }),
-    );
-    expect(repositorioVeiculos.editarComHistorico).not.toHaveBeenCalled();
+    expect(repositorioVeiculos.editar).not.toHaveBeenCalled();
   });
 
   it('rejeita dados inválidos sem persistir mudanças', async () => {
@@ -146,26 +97,8 @@ describe('EditarVeiculo', () => {
         precoAnunciadoCentavos: 0,
       }),
     ).rejects.toEqual(
-      expect.objectContaining<Partial<ErroDominio>>({
-        codigo: 'PRECO_INVALIDO',
-      }),
+      expect.objectContaining<Partial<ErroDominio>>({ codigo: 'PRECO_INVALIDO' }),
     );
-    expect(repositorioVeiculos.editarComHistorico).not.toHaveBeenCalled();
-  });
-
-  it('informa conflito quando o veículo foi alterado concorrentemente', async () => {
-    const { casoDeUso, repositorioVeiculos } = prepararCasoDeUso();
-    repositorioVeiculos.editarComHistorico.mockResolvedValue(false);
-
-    await expect(
-      casoDeUso.executar({
-        identificador: IDENTIFICADOR,
-        cor: 'Branco',
-      }),
-    ).rejects.toEqual(
-      expect.objectContaining<Partial<ErroAplicacao>>({
-        codigo: 'VEICULO_ALTERADO_CONCORRENTEMENTE',
-      }),
-    );
+    expect(repositorioVeiculos.editar).not.toHaveBeenCalled();
   });
 });

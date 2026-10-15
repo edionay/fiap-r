@@ -67,7 +67,6 @@ export class EdicaoVeiculosController extends Controller {
   @SuccessResponse(200, 'Veículo editado')
   @Response<RespostaDeErro>(400, 'Requisição inválida')
   @Response<RespostaDeErro>(404, 'Veículo não encontrado')
-  @Response<RespostaDeErro>(409, 'Conflito no estado do veículo')
   @Response<RespostaDeErro>(422, 'Regra de negócio não atendida')
   public async editar(
     @Path() veiculoId: string,

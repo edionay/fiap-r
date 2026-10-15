@@ -7,15 +7,15 @@ const IDENTIFICADOR = '550e8400-e29b-41d4-a716-446655440000';
 const DATA_ATUAL = new Date('2026-10-14T12:00:00.000Z');
 
 function prepararAplicacao() {
-  const cadastrarComHistorico = vi.fn().mockResolvedValue(undefined);
+  const cadastrar = vi.fn().mockResolvedValue(undefined);
   const cadastrarVeiculo = new CadastrarVeiculo(
-    { cadastrarComHistorico },
+    { cadastrar, buscarPorIdentificador: vi.fn(), editar: vi.fn() },
     { gerar: () => IDENTIFICADOR },
     { agora: () => new Date(DATA_ATUAL) },
   );
   const aplicacao = criarAplicacao({ cadastrarVeiculo });
 
-  return { aplicacao, cadastrarComHistorico };
+  return { aplicacao, cadastrar };
 }
 
 function requisicaoValida() {
@@ -30,7 +30,7 @@ function requisicaoValida() {
 
 describe('POST /veiculos', () => {
   it('cadastra um veículo e retorna 201', async () => {
-    const { aplicacao, cadastrarComHistorico } = prepararAplicacao();
+    const { aplicacao, cadastrar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .post('/veiculos')
@@ -48,7 +48,7 @@ describe('POST /veiculos', () => {
       criadoEm: DATA_ATUAL.toISOString(),
       atualizadoEm: DATA_ATUAL.toISOString(),
     });
-    expect(cadastrarComHistorico).toHaveBeenCalledOnce();
+    expect(cadastrar).toHaveBeenCalledOnce();
   });
 
   it('completa uma casa decimal sem perder precisão', async () => {
@@ -56,10 +56,7 @@ describe('POST /veiculos', () => {
 
     const resposta = await requisicao(aplicacao)
       .post('/veiculos')
-      .send({
-        ...requisicaoValida(),
-        precoAnunciado: '75000.9',
-      });
+      .send({ ...requisicaoValida(), precoAnunciado: '75000.9' });
 
     expect(resposta.status).toBe(201);
     expect(resposta.body).toMatchObject({ precoAnunciado: '75000.90' });
@@ -69,7 +66,7 @@ describe('POST /veiculos', () => {
     const corpoIncompleto: Partial<ReturnType<typeof requisicaoValida>> =
       requisicaoValida();
     delete corpoIncompleto.modelo;
-    const { aplicacao, cadastrarComHistorico } = prepararAplicacao();
+    const { aplicacao, cadastrar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .post('/veiculos')
@@ -80,33 +77,27 @@ describe('POST /veiculos', () => {
       codigo: 'ERRO_DE_VALIDACAO',
       mensagem: 'A validação da requisição falhou.',
     });
-    expect(cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(cadastrar).not.toHaveBeenCalled();
   });
 
   it('retorna 400 quando o ano de fabricação não é inteiro', async () => {
-    const { aplicacao, cadastrarComHistorico } = prepararAplicacao();
+    const { aplicacao, cadastrar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .post('/veiculos')
-      .send({
-        ...requisicaoValida(),
-        anoFabricacao: 2025.5,
-      });
+      .send({ ...requisicaoValida(), anoFabricacao: 2025.5 });
 
     expect(resposta.status).toBe(400);
     expect(resposta.body).toMatchObject({ codigo: 'ERRO_DE_VALIDACAO' });
-    expect(cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(cadastrar).not.toHaveBeenCalled();
   });
 
   it('retorna 400 quando o preço não usa o formato decimal esperado', async () => {
-    const { aplicacao, cadastrarComHistorico } = prepararAplicacao();
+    const { aplicacao, cadastrar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .post('/veiculos')
-      .send({
-        ...requisicaoValida(),
-        precoAnunciado: '75.000,99',
-      });
+      .send({ ...requisicaoValida(), precoAnunciado: '75.000,99' });
 
     expect(resposta.status).toBe(400);
     expect(resposta.body).toEqual({
@@ -118,24 +109,21 @@ describe('POST /veiculos', () => {
           'Informe um valor como "75000.99", sem separador de milhares.',
       },
     });
-    expect(cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(cadastrar).not.toHaveBeenCalled();
   });
 
   it('retorna 422 quando uma regra do domínio não é atendida', async () => {
-    const { aplicacao, cadastrarComHistorico } = prepararAplicacao();
+    const { aplicacao, cadastrar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .post('/veiculos')
-      .send({
-        ...requisicaoValida(),
-        marca: '   ',
-      });
+      .send({ ...requisicaoValida(), marca: '   ' });
 
     expect(resposta.status).toBe(422);
     expect(resposta.body).toEqual({
       codigo: 'MARCA_OBRIGATORIA',
       mensagem: 'O campo marca é obrigatório.',
     });
-    expect(cadastrarComHistorico).not.toHaveBeenCalled();
+    expect(cadastrar).not.toHaveBeenCalled();
   });
 });

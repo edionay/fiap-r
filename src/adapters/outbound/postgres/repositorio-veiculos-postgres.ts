@@ -1,15 +1,9 @@
-import type { Pool } from 'pg';
-import type { GeradorIdentificadores } from '../../../application/ports/gerador-identificadores';
-import type {
-  RepositorioEdicaoVeiculos,
-  RepositorioVeiculos,
-} from '../../../application/ports/repositorio-veiculos';
+import type { Pool, PoolClient } from 'pg';
+import type { RepositorioVeiculos } from '../../../application/ports/repositorio-veiculos';
 import { AnoFabricacao } from '../../../domain/ano-fabricacao';
 import type { IdentificadorVeiculo } from '../../../domain/identificador-veiculo';
 import { Preco } from '../../../domain/preco';
 import { Veiculo } from '../../../domain/veiculo';
-import type { VeiculoCadastrado } from '../../../domain/veiculo-cadastrado';
-import type { VeiculoEditado } from '../../../domain/veiculo-editado';
 
 interface RegistroVeiculo {
   id: string;
@@ -36,18 +30,10 @@ function converterDecimalParaCentavos(valor: string): number {
   return Number(parteInteira) * 100 + Number(parteDecimal.padEnd(2, '0'));
 }
 
-export class RepositorioVeiculosPostgres
-  implements RepositorioVeiculos, RepositorioEdicaoVeiculos
-{
-  public constructor(
-    private readonly pool: Pool,
-    private readonly geradorIdentificadores: GeradorIdentificadores,
-  ) {}
+export class RepositorioVeiculosPostgres implements RepositorioVeiculos {
+  public constructor(private readonly pool: Pool) {}
 
-  public async cadastrarComHistorico(
-    veiculo: Veiculo,
-    evento: VeiculoCadastrado,
-  ): Promise<void> {
+  public async cadastrar(veiculo: Veiculo): Promise<void> {
     const conexao = await this.pool.connect();
 
     try {
@@ -79,24 +65,11 @@ export class RepositorioVeiculosPostgres
           veiculo.atualizadoEm,
         ],
       );
-      await conexao.query(
-        `
-          INSERT INTO historico_veiculos (
-            id,
-            veiculo_id,
-            tipo_evento,
-            alteracoes,
-            ocorrido_em
-          )
-          VALUES ($1, $2, $3, $4, $5)
-        `,
-        [
-          this.geradorIdentificadores.gerar(),
-          evento.veiculoId,
-          evento.tipo,
-          JSON.stringify(evento.dados),
-          evento.ocorridoEm,
-        ],
+      await this.registrarDataAlteracao(
+        conexao,
+        veiculo,
+        'VEICULO_CADASTRADO',
+        veiculo.criadoEm,
       );
       await conexao.query('COMMIT');
     } catch (erro: unknown) {
@@ -151,16 +124,12 @@ export class RepositorioVeiculosPostgres
     });
   }
 
-  public async editarComHistorico(
-    veiculo: Veiculo,
-    evento: VeiculoEditado,
-    atualizadoEmEsperado: Date,
-  ): Promise<boolean> {
+  public async editar(veiculo: Veiculo): Promise<void> {
     const conexao = await this.pool.connect();
 
     try {
       await conexao.query('BEGIN');
-      const resultado = await conexao.query(
+      await conexao.query(
         `
           UPDATE veiculos
           SET
@@ -172,8 +141,6 @@ export class RepositorioVeiculosPostgres
             atualizado_em = $6
           WHERE
             id = $7
-            AND situacao = 'DISPONIVEL'
-            AND atualizado_em = $8
         `,
         [
           veiculo.marca,
@@ -183,41 +150,39 @@ export class RepositorioVeiculosPostgres
           formatarCentavosComoDecimal(veiculo.precoAnunciado.centavos),
           veiculo.atualizadoEm,
           veiculo.identificador.valor,
-          atualizadoEmEsperado,
         ],
       );
-
-      if (resultado.rowCount !== 1) {
-        await conexao.query('ROLLBACK');
-        return false;
-      }
-
-      await conexao.query(
-        `
-          INSERT INTO historico_veiculos (
-            id,
-            veiculo_id,
-            tipo_evento,
-            alteracoes,
-            ocorrido_em
-          )
-          VALUES ($1, $2, $3, $4, $5)
-        `,
-        [
-          this.geradorIdentificadores.gerar(),
-          evento.veiculoId,
-          evento.tipo,
-          JSON.stringify(evento.alteracoes),
-          evento.ocorridoEm,
-        ],
+      await this.registrarDataAlteracao(
+        conexao,
+        veiculo,
+        'VEICULO_EDITADO',
+        veiculo.atualizadoEm,
       );
       await conexao.query('COMMIT');
-      return true;
     } catch (erro: unknown) {
       await conexao.query('ROLLBACK');
       throw erro;
     } finally {
       conexao.release();
     }
+  }
+
+  private async registrarDataAlteracao(
+    conexao: PoolClient,
+    veiculo: Veiculo,
+    tipo: string,
+    ocorridoEm: Date,
+  ): Promise<void> {
+    await conexao.query(
+      `
+        INSERT INTO historico_veiculos (
+          veiculo_id,
+          tipo_evento,
+          ocorrido_em
+        )
+        VALUES ($1, $2, $3)
+      `,
+      [veiculo.identificador.valor, tipo, ocorridoEm],
+    );
   }
 }
