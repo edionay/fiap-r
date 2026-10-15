@@ -1,6 +1,6 @@
 # Plataforma de Gestão de Veículos
 
-API para gestão do catálogo e do processo de venda de uma revenda de veículos. A plataforma centraliza o cadastro, a atualização, a consulta e a venda dos veículos, mantendo um histórico auditável das mudanças realizadas ao longo do ciclo de vida de cada item.
+API para gestão do catálogo e do processo de venda de uma revenda de veículos. A plataforma centraliza o cadastro, a atualização, a consulta e a venda dos veículos e registra as datas de cadastro, edição e venda.
 
 ## Capacidades do produto
 
@@ -9,7 +9,7 @@ API para gestão do catálogo e do processo de venda de uma revenda de veículos
 - Registrar a venda com CPF do comprador e data da operação.
 - Consultar veículos disponíveis, ordenados do menor para o maior preço.
 - Consultar veículos vendidos, ordenados do menor para o maior preço.
-- Consultar o histórico de cadastro, alterações e venda de cada veículo.
+- Registrar as datas de cadastro, edição e venda.
 
 ## Arquitetura
 
@@ -211,7 +211,7 @@ O desenvolvimento será dividido nas seguintes entregas:
 2. Modelagem DDD.
 3. Estrutura executável da API e do ambiente local.
 4. Cadastro de veículos.
-5. Edição e histórico de alterações.
+5. Edição de veículos e registro da data de alteração.
 6. Venda de veículos.
 7. Consultas de veículos disponíveis e vendidos.
 8. Consolidação da documentação e preparação da entrega.
