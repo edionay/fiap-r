@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O fluxo de cadastro está disponível em `POST /veiculos`, e o adaptador PostgreSQL persiste veículo e histórico na mesma transação. A aplicação também possui o caso de uso de edição parcial, que altera somente veículos disponíveis, ignora solicitações sem mudanças efetivas e prepara a persistência atômica do novo estado com seu histórico.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O fluxo de cadastro está disponível em `POST /veiculos`, e o adaptador PostgreSQL persiste veículo e histórico na mesma transação. A aplicação também possui o caso de uso de edição parcial e sua persistência PostgreSQL, com gravação atômica do novo estado e do histórico e proteção contra alterações concorrentes.
 
 ## Execução com Docker
 
