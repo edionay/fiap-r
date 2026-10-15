@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro e edição estão disponíveis em `POST /veiculos` e `PATCH /veiculos/{veiculoId}`. O adaptador PostgreSQL atualiza o veículo e registra a data da alteração na mesma transação.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro, edição e venda estão disponíveis em `POST /veiculos`, `PATCH /veiculos/{veiculoId}` e `POST /veiculos/{veiculoId}/vendas`. O adaptador PostgreSQL persiste cada alteração e sua data na mesma transação.
 
 ## Princípio de implementação
 
@@ -152,6 +152,34 @@ curl --request PATCH http://localhost:3000/veiculos/550e8400-e29b-41d4-a716-4466
 É possível alterar `marca`, `modelo`, `anoFabricacao`, `cor` e `precoAnunciado`. Campos omitidos permanecem inalterados. Toda edição bem-sucedida atualiza `atualizadoEm` e registra a data da alteração.
 
 Uma edição bem-sucedida retorna código `200`. Veículo inexistente retorna `404` e dados inválidos retornam `400` ou `422`, conforme a camada que identifica o erro.
+
+## Venda de veículos
+
+Registre uma venda com o CPF do comprador e a data da operação:
+
+```bash
+curl --request POST http://localhost:3000/veiculos/550e8400-e29b-41d4-a716-446655440000/vendas \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "cpfComprador": "52998224725",
+    "vendidoEm": "2026-10-15T14:30:00.000Z"
+  }'
+```
+
+O CPF deve conter 11 dígitos e passar na validação dos dígitos verificadores. A data deve usar o formato ISO 8601.
+
+Uma venda bem-sucedida retorna código `201`:
+
+```json
+{
+  "id": "660e8400-e29b-41d4-a716-446655440000",
+  "veiculoId": "550e8400-e29b-41d4-a716-446655440000",
+  "situacao": "VENDIDO",
+  "vendidoEm": "2026-10-15T14:30:00.000Z"
+}
+```
+
+Veículo inexistente retorna `404`. Uma segunda venda do mesmo veículo retorna `409`.
 
 ## Banco de dados
 
