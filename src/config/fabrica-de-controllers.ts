@@ -5,6 +5,7 @@ import type {
 } from '@tsoa/runtime';
 import type { Request } from 'express';
 import type { DependenciasAplicacao } from '../adapters/inbound/http/app';
+import { ConsultasVeiculosController } from '../adapters/inbound/http/controllers/consultas-veiculos.controller';
 import { EdicaoVeiculosController } from '../adapters/inbound/http/controllers/edicao-veiculos.controller';
 import { ProntidaoController } from '../adapters/inbound/http/controllers/prontidao.controller';
 import { VeiculosController } from '../adapters/inbound/http/controllers/veiculos.controller';
@@ -47,6 +48,24 @@ export const iocContainer: IocContainerFactory<Request> = (requisicao) => {
 
         return new VeiculosController(
           dependencias.cadastrarVeiculo,
+        ) as unknown as T;
+      }
+
+      if (
+        identificador ===
+        (ConsultasVeiculosController as ServiceIdentifier<T>)
+      ) {
+        const dependencias = requisicao.app.locals
+          .dependencias as Partial<DependenciasAplicacao> | undefined;
+
+        if (dependencias?.listarVeiculos === undefined) {
+          throw new Error(
+            'A dependência de consulta de veículos não foi configurada.',
+          );
+        }
+
+        return new ConsultasVeiculosController(
+          dependencias.listarVeiculos,
         ) as unknown as T;
       }
 
