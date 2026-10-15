@@ -6,6 +6,7 @@ import { VerificadorSaudePostgres } from '../adapters/outbound/postgres/verifica
 import { RelogioSistema } from '../adapters/outbound/relogio-sistema';
 import { ObterEstadoDeProntidao } from '../application/saude/obter-estado-de-prontidao';
 import { CadastrarVeiculo } from '../application/veiculos/cadastrar-veiculo';
+import { EditarVeiculo } from '../application/veiculos/editar-veiculo';
 import { carregarConfiguracao } from './env';
 
 const configuracao = carregarConfiguracao();
@@ -19,15 +20,18 @@ const repositorioVeiculos = new RepositorioVeiculosPostgres(
 const obterEstadoDeProntidao = new ObterEstadoDeProntidao(
   verificadorSaudePostgres,
 );
+const relogio = new RelogioSistema();
 const cadastrarVeiculo = new CadastrarVeiculo(
   repositorioVeiculos,
   geradorIdentificadores,
-  new RelogioSistema(),
+  relogio,
 );
+const editarVeiculo = new EditarVeiculo(repositorioVeiculos, relogio);
 
 const aplicacao = criarAplicacao({
   obterEstadoDeProntidao,
   cadastrarVeiculo,
+  editarVeiculo,
 });
 
 const servidor = aplicacao.listen(configuracao.porta, () => {
