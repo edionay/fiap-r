@@ -5,7 +5,6 @@ import { IdentificadorVeiculo } from '../../../src/domain/identificador-veiculo'
 import { Preco } from '../../../src/domain/preco';
 import { SituacaoVeiculo } from '../../../src/domain/situacao-veiculo';
 import { Veiculo } from '../../../src/domain/veiculo';
-import { TipoEventoVeiculo } from '../../../src/domain/tipo-evento-veiculo';
 
 const IDENTIFICADOR = IdentificadorVeiculo.criar(
   '550e8400-e29b-41d4-a716-446655440000',
@@ -49,7 +48,7 @@ function reconstruirVeiculo(
 
 describe('Veiculo', () => {
   it('cadastra um veículo disponível com os dados normalizados', () => {
-    const { veiculo } = cadastrarVeiculo();
+    const veiculo = cadastrarVeiculo();
 
     expect(veiculo.identificador).toBe(IDENTIFICADOR);
     expect(veiculo.marca).toBe('Honda');
@@ -87,7 +86,7 @@ describe('Veiculo', () => {
 
   it('protege as datas internas contra alteração externa', () => {
     const dataInformada = new Date(DATA_CADASTRO);
-    const { veiculo } = cadastrarVeiculo({ cadastradoEm: dataInformada });
+    const veiculo = cadastrarVeiculo({ cadastradoEm: dataInformada });
 
     dataInformada.setUTCFullYear(2030);
     const dataRetornada = veiculo.criadoEm;
@@ -97,37 +96,11 @@ describe('Veiculo', () => {
     expect(veiculo.atualizadoEm).toEqual(DATA_CADASTRO);
   });
 
-  it('produz o evento imutável de veículo cadastrado', () => {
-    const { evento } = cadastrarVeiculo();
-
-    expect(evento).toEqual({
-      tipo: TipoEventoVeiculo.CADASTRADO,
-      veiculoId: IDENTIFICADOR.valor,
-      dados: {
-        marca: 'Honda',
-        modelo: 'Civic',
-        anoFabricacao: 2025,
-        cor: 'Preto',
-        precoAnunciadoCentavos: 7_500_000,
-        situacao: SituacaoVeiculo.DISPONIVEL,
-      },
-      ocorridoEm: '2026-10-14T12:00:00.000Z',
-    });
-    expect(Object.isFrozen(evento)).toBe(true);
-    expect(Object.isFrozen(evento.dados)).toBe(true);
-  });
-
-  it('reconstrói um veículo persistido sem produzir evento', () => {
-    const criadoEm = new Date(DATA_CADASTRO);
-    const atualizadoEm = new Date(DATA_ATUALIZACAO);
-
+  it('reconstrói um veículo persistido', () => {
     const veiculo = reconstruirVeiculo({
       situacao: SituacaoVeiculo.VENDIDO,
-      criadoEm,
-      atualizadoEm,
+      atualizadoEm: DATA_ATUALIZACAO,
     });
-    criadoEm.setUTCFullYear(2030);
-    atualizadoEm.setUTCFullYear(2030);
 
     expect(veiculo.identificador).toBe(IDENTIFICADOR);
     expect(veiculo.situacao).toBe(SituacaoVeiculo.VENDIDO);
@@ -143,92 +116,43 @@ describe('Veiculo', () => {
     );
   });
 
-  it('edita os dados informados e registra apenas as mudanças efetivas', () => {
+  it('edita os dados informados e registra a data da alteração', () => {
     const veiculo = reconstruirVeiculo();
     const novoPreco = Preco.criarEmCentavos(8_000_000);
 
-    const resultado = veiculo.editar(
+    const editado = veiculo.editar(
       {
         marca: ' Toyota ',
-        modelo: 'Civic',
+        modelo: 'Accord',
+        anoFabricacao: AnoFabricacao.criar(2026, 2026),
+        cor: 'Branco',
         precoAnunciado: novoPreco,
       },
       DATA_ATUALIZACAO,
     );
 
-    expect(resultado.veiculo).not.toBe(veiculo);
-    expect(resultado.veiculo.marca).toBe('Toyota');
-    expect(resultado.veiculo.modelo).toBe('Civic');
-    expect(resultado.veiculo.precoAnunciado).toBe(novoPreco);
-    expect(resultado.veiculo.criadoEm).toEqual(DATA_CADASTRO);
-    expect(resultado.veiculo.atualizadoEm).toEqual(DATA_ATUALIZACAO);
-    expect(resultado.evento).toEqual({
-      tipo: TipoEventoVeiculo.EDITADO,
-      veiculoId: IDENTIFICADOR.valor,
-      alteracoes: {
-        marca: { anterior: 'Honda', atual: 'Toyota' },
-        precoAnunciadoCentavos: {
-          anterior: 7_500_000,
-          atual: 8_000_000,
-        },
-      },
-      ocorridoEm: DATA_ATUALIZACAO.toISOString(),
-    });
-  });
-
-  it('edita ano, modelo e cor quando os valores mudam', () => {
-    const veiculo = reconstruirVeiculo();
-    const novoAno = AnoFabricacao.criar(2026, 2026);
-
-    const { veiculo: editado, evento } = veiculo.editar(
-      {
-        modelo: 'Accord',
-        anoFabricacao: novoAno,
-        cor: 'Branco',
-      },
-      DATA_ATUALIZACAO,
-    );
-
+    expect(editado.marca).toBe('Toyota');
     expect(editado.modelo).toBe('Accord');
-    expect(editado.anoFabricacao).toBe(novoAno);
+    expect(editado.anoFabricacao.valor).toBe(2026);
     expect(editado.cor).toBe('Branco');
-    expect(evento?.alteracoes).toEqual({
-      modelo: { anterior: 'Civic', atual: 'Accord' },
-      anoFabricacao: { anterior: 2025, atual: 2026 },
-      cor: { anterior: 'Preto', atual: 'Branco' },
-    });
+    expect(editado.precoAnunciado).toBe(novoPreco);
+    expect(editado.situacao).toBe(SituacaoVeiculo.DISPONIVEL);
+    expect(editado.criadoEm).toEqual(DATA_CADASTRO);
+    expect(editado.atualizadoEm).toEqual(DATA_ATUALIZACAO);
   });
 
-  it('mantém o veículo e não produz evento quando nada muda', () => {
+  it('mantém os campos não informados durante a edição', () => {
     const veiculo = reconstruirVeiculo();
 
-    const resultado = veiculo.editar(
-      {
-        marca: ' Honda ',
-        precoAnunciado: Preco.criarEmCentavos(7_500_000),
-      },
-      DATA_ATUALIZACAO,
-    );
+    const editado = veiculo.editar({ cor: 'Branco' }, DATA_ATUALIZACAO);
 
-    expect(resultado).toEqual({ veiculo, evento: null });
-    expect(resultado.veiculo.atualizadoEm).toEqual(DATA_CADASTRO);
+    expect(editado.marca).toBe('Honda');
+    expect(editado.modelo).toBe('Civic');
+    expect(editado.cor).toBe('Branco');
+    expect(editado.precoAnunciado).toBe(PRECO);
   });
 
-  it('rejeita a edição de um veículo vendido', () => {
-    const veiculo = reconstruirVeiculo({
-      situacao: SituacaoVeiculo.VENDIDO,
-    });
-
-    expect(() =>
-      veiculo.editar({ cor: 'Branco' }, DATA_ATUALIZACAO),
-    ).toThrow(
-      expect.objectContaining<Partial<ErroDominio>>({
-        codigo: 'VEICULO_NAO_DISPONIVEL',
-      }),
-    );
-  });
-
-  it('rejeita uma data de atualização inválida quando há mudança', () => {
+  it('rejeita uma data de atualização inválida', () => {
     const veiculo = reconstruirVeiculo();
 
     expect(() =>
@@ -238,19 +162,5 @@ describe('Veiculo', () => {
         codigo: 'DATA_ATUALIZACAO_INVALIDA',
       }),
     );
-  });
-
-  it('produz um evento de edição profundamente imutável', () => {
-    const veiculo = reconstruirVeiculo();
-
-    const { evento } = veiculo.editar(
-      { cor: 'Branco' },
-      DATA_ATUALIZACAO,
-    );
-
-    expect(evento).not.toBeNull();
-    expect(Object.isFrozen(evento)).toBe(true);
-    expect(Object.isFrozen(evento?.alteracoes)).toBe(true);
-    expect(Object.isFrozen(evento?.alteracoes.cor)).toBe(true);
   });
 });

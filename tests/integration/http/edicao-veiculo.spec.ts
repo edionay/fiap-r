@@ -12,7 +12,7 @@ const IDENTIFICADOR = '550e8400-e29b-41d4-a716-446655440000';
 const DATA_CADASTRO = new Date('2026-10-14T12:00:00.000Z');
 const DATA_ATUALIZACAO = new Date('2026-10-15T14:30:00.000Z');
 
-function criarVeiculo(situacao: SituacaoVeiculo = SituacaoVeiculo.DISPONIVEL) {
+function criarVeiculo() {
   return Veiculo.reconstruir({
     identificador: IdentificadorVeiculo.criar(IDENTIFICADOR),
     marca: 'Honda',
@@ -20,41 +20,31 @@ function criarVeiculo(situacao: SituacaoVeiculo = SituacaoVeiculo.DISPONIVEL) {
     anoFabricacao: AnoFabricacao.criar(2025, 2026),
     cor: 'Preto',
     precoAnunciado: Preco.criarEmCentavos(7_500_099),
-    situacao,
+    situacao: SituacaoVeiculo.DISPONIVEL,
     criadoEm: DATA_CADASTRO,
     atualizadoEm: DATA_CADASTRO,
   });
 }
 
-function prepararAplicacao(
-  veiculo: Veiculo | null = criarVeiculo(),
-  edicaoRealizada = true,
-) {
+function prepararAplicacao(veiculo: Veiculo | null = criarVeiculo()) {
   const buscarPorIdentificador = vi.fn().mockResolvedValue(veiculo);
-  const editarComHistorico = vi.fn().mockResolvedValue(edicaoRealizada);
+  const editar = vi.fn().mockResolvedValue(undefined);
   const editarVeiculo = new EditarVeiculo(
-    { buscarPorIdentificador, editarComHistorico },
+    { cadastrar: vi.fn(), buscarPorIdentificador, editar },
     { agora: () => new Date(DATA_ATUALIZACAO) },
   );
   const aplicacao = criarAplicacao({ editarVeiculo });
 
-  return {
-    aplicacao,
-    buscarPorIdentificador,
-    editarComHistorico,
-  };
+  return { aplicacao, buscarPorIdentificador, editar };
 }
 
 describe('PATCH /veiculos/{veiculoId}', () => {
   it('edita os campos informados e retorna 200', async () => {
-    const { aplicacao, editarComHistorico } = prepararAplicacao();
+    const { aplicacao, editar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .patch(`/veiculos/${IDENTIFICADOR}`)
-      .send({
-        cor: 'Branco',
-        precoAnunciado: '80000.9',
-      });
+      .send({ cor: 'Branco', precoAnunciado: '80000.9' });
 
     expect(resposta.status).toBe(200);
     expect(resposta.body).toEqual({
@@ -68,22 +58,7 @@ describe('PATCH /veiculos/{veiculoId}', () => {
       criadoEm: DATA_CADASTRO.toISOString(),
       atualizadoEm: DATA_ATUALIZACAO.toISOString(),
     });
-    expect(editarComHistorico).toHaveBeenCalledOnce();
-  });
-
-  it('retorna o estado atual sem persistir quando nada muda', async () => {
-    const { aplicacao, editarComHistorico } = prepararAplicacao();
-
-    const resposta = await requisicao(aplicacao)
-      .patch(`/veiculos/${IDENTIFICADOR}`)
-      .send({ cor: ' Preto ' });
-
-    expect(resposta.status).toBe(200);
-    expect(resposta.body).toMatchObject({
-      cor: 'Preto',
-      atualizadoEm: DATA_CADASTRO.toISOString(),
-    });
-    expect(editarComHistorico).not.toHaveBeenCalled();
+    expect(editar).toHaveBeenCalledOnce();
   });
 
   it('retorna 400 para um identificador inválido', async () => {
@@ -116,7 +91,7 @@ describe('PATCH /veiculos/{veiculoId}', () => {
   });
 
   it('retorna 404 quando o veículo não existe', async () => {
-    const { aplicacao, editarComHistorico } = prepararAplicacao(null);
+    const { aplicacao, editar } = prepararAplicacao(null);
 
     const resposta = await requisicao(aplicacao)
       .patch(`/veiculos/${IDENTIFICADOR}`)
@@ -127,46 +102,11 @@ describe('PATCH /veiculos/{veiculoId}', () => {
       codigo: 'VEICULO_NAO_ENCONTRADO',
       mensagem: 'O veículo informado não foi encontrado.',
     });
-    expect(editarComHistorico).not.toHaveBeenCalled();
-  });
-
-  it('retorna 409 quando o veículo está vendido', async () => {
-    const { aplicacao, editarComHistorico } = prepararAplicacao(
-      criarVeiculo(SituacaoVeiculo.VENDIDO),
-    );
-
-    const resposta = await requisicao(aplicacao)
-      .patch(`/veiculos/${IDENTIFICADOR}`)
-      .send({ cor: 'Branco' });
-
-    expect(resposta.status).toBe(409);
-    expect(resposta.body).toEqual({
-      codigo: 'VEICULO_NAO_DISPONIVEL',
-      mensagem: 'Somente veículos disponíveis podem ser editados.',
-    });
-    expect(editarComHistorico).not.toHaveBeenCalled();
-  });
-
-  it('retorna 409 quando outra operação alterou o veículo', async () => {
-    const { aplicacao, editarComHistorico } = prepararAplicacao(
-      criarVeiculo(),
-      false,
-    );
-
-    const resposta = await requisicao(aplicacao)
-      .patch(`/veiculos/${IDENTIFICADOR}`)
-      .send({ cor: 'Branco' });
-
-    expect(resposta.status).toBe(409);
-    expect(resposta.body).toEqual({
-      codigo: 'VEICULO_ALTERADO_CONCORRENTEMENTE',
-      mensagem: 'O veículo foi alterado por outra operação.',
-    });
-    expect(editarComHistorico).toHaveBeenCalledOnce();
+    expect(editar).not.toHaveBeenCalled();
   });
 
   it('retorna 422 quando um campo informado viola uma regra do domínio', async () => {
-    const { aplicacao, editarComHistorico } = prepararAplicacao();
+    const { aplicacao, editar } = prepararAplicacao();
 
     const resposta = await requisicao(aplicacao)
       .patch(`/veiculos/${IDENTIFICADOR}`)
@@ -177,6 +117,6 @@ describe('PATCH /veiculos/{veiculoId}', () => {
       codigo: 'MARCA_OBRIGATORIA',
       mensagem: 'O campo marca é obrigatório.',
     });
-    expect(editarComHistorico).not.toHaveBeenCalled();
+    expect(editar).not.toHaveBeenCalled();
   });
 });

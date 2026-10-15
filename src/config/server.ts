@@ -13,10 +13,7 @@ const configuracao = carregarConfiguracao();
 const pool = criarPoolPostgres(configuracao.bancoDados);
 const geradorIdentificadores = new GeradorIdentificadoresUuid();
 const verificadorSaudePostgres = new VerificadorSaudePostgres(pool);
-const repositorioVeiculos = new RepositorioVeiculosPostgres(
-  pool,
-  geradorIdentificadores,
-);
+const repositorioVeiculos = new RepositorioVeiculosPostgres(pool);
 const obterEstadoDeProntidao = new ObterEstadoDeProntidao(
   verificadorSaudePostgres,
 );

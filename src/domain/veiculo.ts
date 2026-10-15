@@ -1,18 +1,8 @@
 import type { AnoFabricacao } from './ano-fabricacao';
 import { ErroDominio } from './erro-dominio';
-import {
-  criarEventoVeiculoCadastrado,
-  type VeiculoCadastrado,
-} from './veiculo-cadastrado';
 import type { IdentificadorVeiculo } from './identificador-veiculo';
 import type { Preco } from './preco';
 import { SituacaoVeiculo } from './situacao-veiculo';
-import {
-  type Alteracao,
-  type AlteracoesVeiculo,
-  criarEventoVeiculoEditado,
-  type VeiculoEditado,
-} from './veiculo-editado';
 
 export interface DadosCadastroVeiculo {
   identificador: IdentificadorVeiculo;
@@ -22,11 +12,6 @@ export interface DadosCadastroVeiculo {
   cor: string;
   precoAnunciado: Preco;
   cadastradoEm: Date;
-}
-
-export interface ResultadoCadastroVeiculo {
-  veiculo: Veiculo;
-  evento: VeiculoCadastrado;
 }
 
 export interface DadosReconstrucaoVeiculo {
@@ -47,11 +32,6 @@ export interface DadosEdicaoVeiculo {
   anoFabricacao?: AnoFabricacao | undefined;
   cor?: string | undefined;
   precoAnunciado?: Preco | undefined;
-}
-
-export interface ResultadoEdicaoVeiculo {
-  veiculo: Veiculo;
-  evento: VeiculoEditado | null;
 }
 
 function normalizarEValidarTextoObrigatorio(
@@ -97,10 +77,6 @@ function validarSituacao(situacao: string): SituacaoVeiculo {
   return situacao;
 }
 
-function criarAlteracao<T>(anterior: T, atual: T): Alteracao<T> {
-  return { anterior, atual };
-}
-
 export class Veiculo {
   private readonly criadoEmInterno: Date;
   private readonly atualizadoEmInterno: Date;
@@ -120,9 +96,7 @@ export class Veiculo {
     this.atualizadoEmInterno = new Date(atualizadoEm.getTime());
   }
 
-  public static cadastrar(
-    dados: DadosCadastroVeiculo,
-  ): ResultadoCadastroVeiculo {
+  public static cadastrar(dados: DadosCadastroVeiculo): Veiculo {
     const marca = normalizarEValidarTextoObrigatorio(
       'marca',
       'MARCA_OBRIGATORIA',
@@ -144,7 +118,7 @@ export class Veiculo {
       'A data de cadastro deve ser válida.',
     );
 
-    const veiculo = new Veiculo(
+    return new Veiculo(
       dados.identificador,
       marca,
       modelo,
@@ -155,21 +129,6 @@ export class Veiculo {
       cadastradoEm,
       cadastradoEm,
     );
-
-    const evento = criarEventoVeiculoCadastrado(
-      veiculo.identificador.valor,
-      {
-        marca: veiculo.marca,
-        modelo: veiculo.modelo,
-        anoFabricacao: veiculo.anoFabricacao.valor,
-        cor: veiculo.cor,
-        precoAnunciadoCentavos: veiculo.precoAnunciado.centavos,
-        situacao: veiculo.situacao,
-      },
-      cadastradoEm,
-    );
-
-    return { veiculo, evento };
   }
 
   public static reconstruir(dados: DadosReconstrucaoVeiculo): Veiculo {
@@ -213,81 +172,30 @@ export class Veiculo {
     );
   }
 
-  public editar(
-    dados: DadosEdicaoVeiculo,
-    atualizadoEm: Date,
-  ): ResultadoEdicaoVeiculo {
-    if (this.situacao !== SituacaoVeiculo.DISPONIVEL) {
-      throw new ErroDominio(
-        'VEICULO_NAO_DISPONIVEL',
-        'Somente veículos disponíveis podem ser editados.',
-      );
-    }
-
-    const marca =
-      dados.marca === undefined
-        ? this.marca
-        : normalizarEValidarTextoObrigatorio(
-            'marca',
-            'MARCA_OBRIGATORIA',
-            dados.marca,
-          );
-    const modelo =
-      dados.modelo === undefined
-        ? this.modelo
-        : normalizarEValidarTextoObrigatorio(
-            'modelo',
-            'MODELO_OBRIGATORIO',
-            dados.modelo,
-          );
+  public editar(dados: DadosEdicaoVeiculo, atualizadoEm: Date): Veiculo {
+    const marca = normalizarEValidarTextoObrigatorio(
+      'marca',
+      'MARCA_OBRIGATORIA',
+      dados.marca ?? this.marca,
+    );
+    const modelo = normalizarEValidarTextoObrigatorio(
+      'modelo',
+      'MODELO_OBRIGATORIO',
+      dados.modelo ?? this.modelo,
+    );
     const anoFabricacao = dados.anoFabricacao ?? this.anoFabricacao;
-    const cor =
-      dados.cor === undefined
-        ? this.cor
-        : normalizarEValidarTextoObrigatorio(
-            'cor',
-            'COR_OBRIGATORIA',
-            dados.cor,
-          );
+    const cor = normalizarEValidarTextoObrigatorio(
+      'cor',
+      'COR_OBRIGATORIA',
+      dados.cor ?? this.cor,
+    );
     const precoAnunciado = dados.precoAnunciado ?? this.precoAnunciado;
-    const alteracoes: AlteracoesVeiculo = {
-      ...(marca === this.marca
-        ? {}
-        : { marca: criarAlteracao(this.marca, marca) }),
-      ...(modelo === this.modelo
-        ? {}
-        : { modelo: criarAlteracao(this.modelo, modelo) }),
-      ...(anoFabricacao.igualA(this.anoFabricacao)
-        ? {}
-        : {
-            anoFabricacao: criarAlteracao(
-              this.anoFabricacao.valor,
-              anoFabricacao.valor,
-            ),
-          }),
-      ...(cor === this.cor
-        ? {}
-        : { cor: criarAlteracao(this.cor, cor) }),
-      ...(precoAnunciado.igualA(this.precoAnunciado)
-        ? {}
-        : {
-            precoAnunciadoCentavos: criarAlteracao(
-              this.precoAnunciado.centavos,
-              precoAnunciado.centavos,
-            ),
-          }),
-    };
-
-    if (Object.keys(alteracoes).length === 0) {
-      return { veiculo: this, evento: null };
-    }
-
     const dataAtualizacao = copiarDataValida(
       atualizadoEm,
       'DATA_ATUALIZACAO_INVALIDA',
       'A data de atualização deve ser válida.',
     );
-    const veiculo = new Veiculo(
+    return new Veiculo(
       this.identificador,
       marca,
       modelo,
@@ -298,13 +206,6 @@ export class Veiculo {
       this.criadoEmInterno,
       dataAtualizacao,
     );
-    const evento = criarEventoVeiculoEditado(
-      this.identificador.valor,
-      alteracoes,
-      dataAtualizacao,
-    );
-
-    return { veiculo, evento };
   }
 
   public get criadoEm(): Date {
