@@ -73,7 +73,6 @@ describe.skipIf(urlBancoDados === '')('RepositorioVendasPostgres', () => {
       situacao: string;
       atualizadoEm: Date;
       cpfComprador: string;
-      precoVenda: string;
       vendidoEm: Date;
       ocorridoEm: Date;
     }>(
@@ -82,7 +81,6 @@ describe.skipIf(urlBancoDados === '')('RepositorioVendasPostgres', () => {
           v.situacao,
           v.atualizado_em AS "atualizadoEm",
           vd.cpf_comprador AS "cpfComprador",
-          vd.preco_venda AS "precoVenda",
           vd.vendido_em AS "vendidoEm",
           h.ocorrido_em AS "ocorridoEm"
         FROM veiculos v
@@ -99,7 +97,6 @@ describe.skipIf(urlBancoDados === '')('RepositorioVendasPostgres', () => {
         situacao: 'VENDIDO',
         atualizadoEm: DATA_VENDA,
         cpfComprador: '52998224725',
-        precoVenda: '75000.99',
         vendidoEm: DATA_VENDA,
         ocorridoEm: DATA_VENDA,
       },
