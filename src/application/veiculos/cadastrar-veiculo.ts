@@ -7,7 +7,7 @@ import type { GeradorIdentificadores } from '../ports/gerador-identificadores';
 import type { Relogio } from '../ports/relogio';
 import type { RepositorioVeiculos } from '../ports/repositorio-veiculos';
 
-export interface ComandoCadastrarVeiculo {
+export interface DadosCadastroVeiculo {
   marca: string;
   modelo: string;
   anoFabricacao: number;
@@ -35,25 +35,25 @@ export class CadastrarVeiculo {
   ) {}
 
   public async executar(
-    comando: ComandoCadastrarVeiculo,
+    dados: DadosCadastroVeiculo,
   ): Promise<ResultadoCadastrarVeiculo> {
     const cadastradoEm = this.relogio.agora();
     const anoFabricacao = AnoFabricacao.criar(
-      comando.anoFabricacao,
+      dados.anoFabricacao,
       cadastradoEm.getUTCFullYear(),
     );
     const precoAnunciado = Preco.criarEmCentavos(
-      comando.precoAnunciadoCentavos,
+      dados.precoAnunciadoCentavos,
     );
     const identificador = IdentificadorVeiculo.criar(
       this.geradorIdentificadores.gerar(),
     );
     const { veiculo, evento } = Veiculo.cadastrar({
       identificador,
-      marca: comando.marca,
-      modelo: comando.modelo,
+      marca: dados.marca,
+      modelo: dados.modelo,
       anoFabricacao,
-      cor: comando.cor,
+      cor: dados.cor,
       precoAnunciado,
       cadastradoEm,
     });

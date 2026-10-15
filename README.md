@@ -1,6 +1,6 @@
 # Plataforma de Gestão de Veículos
 
-API para gestão do catálogo e do processo de venda de uma revenda de veículos. A plataforma centraliza o cadastro, a atualização, a consulta e a venda dos veículos, mantendo um histórico auditável das mudanças realizadas ao longo do ciclo de vida de cada item.
+API para gestão do catálogo e do processo de venda de uma revenda de veículos. A plataforma centraliza o cadastro, a atualização, a consulta e a venda dos veículos e registra as datas de cadastro, edição e venda.
 
 ## Capacidades do produto
 
@@ -9,7 +9,7 @@ API para gestão do catálogo e do processo de venda de uma revenda de veículos
 - Registrar a venda com CPF do comprador e data da operação.
 - Consultar veículos disponíveis, ordenados do menor para o maior preço.
 - Consultar veículos vendidos, ordenados do menor para o maior preço.
-- Consultar o histórico de cadastro, alterações e venda de cada veículo.
+- Registrar as datas de cadastro, edição e venda.
 
 ## Arquitetura
 
@@ -29,7 +29,7 @@ Essa separação permite testar as regras de negócio sem banco de dados ou serv
 
 ## Estado atual
 
-O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. O fluxo de cadastro está disponível em `POST /veiculos`, e o adaptador PostgreSQL persiste veículo e histórico na mesma transação. A aplicação também possui o caso de uso de edição parcial e sua persistência PostgreSQL, com gravação atômica do novo estado e do histórico e proteção contra alterações concorrentes.
+O projeto possui servidor HTTP, geração OpenAPI, rotas de saúde e prontidão, PostgreSQL, migrações, containers e testes automatizados. Os fluxos de cadastro e edição estão disponíveis em `POST /veiculos` e `PATCH /veiculos/{veiculoId}`. O adaptador PostgreSQL persiste cada mudança com seu histórico na mesma transação e protege a edição contra alterações concorrentes.
 
 ## Execução com Docker
 
@@ -123,6 +123,23 @@ O preço é informado como string decimal, sem separador de milhares, para prese
 }
 ```
 
+## Edição de veículos
+
+Edite somente os campos necessários com:
+
+```bash
+curl --request PATCH http://localhost:3000/veiculos/550e8400-e29b-41d4-a716-446655440000 \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "cor": "Branco",
+    "precoAnunciado": "80000.00"
+  }'
+```
+
+É possível alterar `marca`, `modelo`, `anoFabricacao`, `cor` e `precoAnunciado`. Campos omitidos permanecem inalterados. Uma requisição sem mudanças efetivas retorna o estado atual sem modificar a data de atualização ou criar histórico.
+
+Uma edição bem-sucedida retorna código `200`. Veículo inexistente retorna `404`, enquanto veículo vendido ou alterado por uma operação concorrente retorna `409`.
+
 ## Banco de dados
 
 A configuração local está em `.env.example`. O arquivo `.env` não é versionado.
@@ -194,7 +211,7 @@ O desenvolvimento será dividido nas seguintes entregas:
 2. Modelagem DDD.
 3. Estrutura executável da API e do ambiente local.
 4. Cadastro de veículos.
-5. Edição e histórico de alterações.
+5. Edição de veículos e registro da data de alteração.
 6. Venda de veículos.
 7. Consultas de veículos disponíveis e vendidos.
 8. Consolidação da documentação e preparação da entrega.

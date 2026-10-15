@@ -5,6 +5,7 @@ import type {
 } from '@tsoa/runtime';
 import type { Request } from 'express';
 import type { DependenciasAplicacao } from '../adapters/inbound/http/app';
+import { EdicaoVeiculosController } from '../adapters/inbound/http/controllers/edicao-veiculos.controller';
 import { ProntidaoController } from '../adapters/inbound/http/controllers/prontidao.controller';
 import { VeiculosController } from '../adapters/inbound/http/controllers/veiculos.controller';
 
@@ -45,6 +46,24 @@ export const iocContainer: IocContainerFactory<Request> = (requisicao) => {
 
         return new VeiculosController(
           dependencias.cadastrarVeiculo,
+        ) as unknown as T;
+      }
+
+      if (
+        identificador ===
+        (EdicaoVeiculosController as ServiceIdentifier<T>)
+      ) {
+        const dependencias = requisicao.app.locals
+          .dependencias as Partial<DependenciasAplicacao> | undefined;
+
+        if (dependencias?.editarVeiculo === undefined) {
+          throw new Error(
+            'A dependência de edição de veículo não foi configurada.',
+          );
+        }
+
+        return new EdicaoVeiculosController(
+          dependencias.editarVeiculo,
         ) as unknown as T;
       }
 

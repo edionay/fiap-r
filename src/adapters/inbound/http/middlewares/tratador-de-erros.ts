@@ -1,7 +1,18 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ValidateError } from '@tsoa/runtime';
+import { ErroAplicacao } from '../../../../application/erro-aplicacao';
 import { ErroDominio } from '../../../../domain/erro-dominio';
 import { ErroRequisicao } from '../erro-requisicao';
+
+const STATUS_ERROS_APLICACAO: Readonly<Record<string, number>> = {
+  VEICULO_NAO_ENCONTRADO: 404,
+  VEICULO_ALTERADO_CONCORRENTEMENTE: 409,
+};
+
+const STATUS_ERROS_DOMINIO: Readonly<Record<string, number>> = {
+  IDENTIFICADOR_VEICULO_INVALIDO: 400,
+  VEICULO_NAO_DISPONIVEL: 409,
+};
 
 export interface RespostaDeErro {
   codigo: string;
@@ -49,13 +60,26 @@ export const tratadorDeErros: ErrorRequestHandler = (
     return;
   }
 
+  if (erro instanceof ErroAplicacao) {
+    const corpo: RespostaDeErro = {
+      codigo: erro.codigo,
+      mensagem: erro.message,
+    };
+    const status = STATUS_ERROS_APLICACAO[erro.codigo] ?? 500;
+
+    resposta.status(status).json(corpo);
+    return;
+  }
+
   if (erro instanceof ErroDominio) {
     const corpo: RespostaDeErro = {
       codigo: erro.codigo,
       mensagem: erro.message,
     };
 
-    resposta.status(422).json(corpo);
+    const status = STATUS_ERROS_DOMINIO[erro.codigo] ?? 422;
+
+    resposta.status(status).json(corpo);
     return;
   }
 
