@@ -89,6 +89,7 @@ export class EditarVeiculo {
     }
 
     const atualizadoEm = this.relogio.agora();
+    const atualizadoEmEsperado = veiculo.atualizadoEm;
     const dadosEdicao = criarDadosEdicao(
       comando,
       atualizadoEm.getUTCFullYear(),
@@ -96,10 +97,19 @@ export class EditarVeiculo {
     const resultado = veiculo.editar(dadosEdicao, atualizadoEm);
 
     if (resultado.evento !== null) {
-      await this.repositorioVeiculos.editarComHistorico(
-        resultado.veiculo,
-        resultado.evento,
-      );
+      const edicaoRealizada =
+        await this.repositorioVeiculos.editarComHistorico(
+          resultado.veiculo,
+          resultado.evento,
+          atualizadoEmEsperado,
+        );
+
+      if (!edicaoRealizada) {
+        throw new ErroAplicacao(
+          'VEICULO_ALTERADO_CONCORRENTEMENTE',
+          'O veículo foi alterado por outra operação.',
+        );
+      }
     }
 
     return criarResultado(resultado.veiculo);

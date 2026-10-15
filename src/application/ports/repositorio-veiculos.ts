@@ -17,5 +17,6 @@ export interface RepositorioEdicaoVeiculos {
   editarComHistorico(
     veiculo: Veiculo,
     evento: VeiculoEditado,
-  ): Promise<void>;
+    atualizadoEmEsperado: Date,
+  ): Promise<boolean>;
 }
