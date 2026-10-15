@@ -2,207 +2,125 @@
 
 ## Objetivo
 
-Este documento descreve como os atores realizam as atividades principais da Plataforma de Gestão de Veículos. As histórias apresentam a sequência de trabalho, os objetos utilizados e as regras aplicadas em cada fluxo.
-
-Os termos seguem a [linguagem ubíqua](linguagem-ubiqua.md) do contexto Gestão de Veículos. As definições de [atores](linguagem-ubiqua.md#atores), [objetos do domínio](linguagem-ubiqua.md#termos-do-domínio) e [invariantes](linguagem-ubiqua.md#invariantes) permanecem centralizadas naquele documento.
+Este documento descreve como o Operador usa a plataforma para administrar o catálogo e registrar vendas. Os termos seguem a [linguagem ubíqua](linguagem-ubiqua.md).
 
 ## Notação
 
-- Retângulos representam atores ou o sistema.
-- Formas cilíndricas representam objetos de trabalho persistidos.
-- Formas com cantos arredondados representam dados utilizados durante uma atividade.
-- Setas numeradas representam as atividades na ordem em que acontecem.
-- O Sistema representa a Plataforma de Gestão de Veículos e não introduz um novo ator de negócio.
+- Retângulos representam o Operador ou o Sistema.
+- Formas arredondadas representam informações usadas no fluxo.
+- Formas cilíndricas representam dados persistidos.
+- Setas numeradas indicam a ordem das atividades.
 
 ## História 1 - Cadastrar veículo
 
-### Situação inicial
-
-O Operador possui os dados de um veículo que deve entrar no catálogo.
-
 ```mermaid
 flowchart LR
     O[Operador]
-    D([Dados do veículo])
+    D([Marca, modelo, ano, cor e preço])
     S[Sistema]
     V[(Veículo)]
-    H[(Histórico do veículo)]
+    H[(Data de cadastro)]
 
     O -->|1. informa| D
-    D -->|2. solicita cadastro| S
-    S -->|3. cria como Disponível| V
-    S -->|4. registra Veículo cadastrado| H
-    S -->|5. confirma cadastro| O
+    D -->|2. envia| S
+    S -->|3. cadastra como disponível| V
+    S -->|4. registra| H
+    S -->|5. retorna o veículo| O
 ```
 
-### Sequência
+1. O Operador informa marca, modelo, ano, cor e preço.
+2. O Sistema valida os dados.
+3. O Sistema cadastra o Veículo com a situação `DISPONIVEL`.
+4. O Sistema registra a data do cadastro.
+5. O Sistema retorna o Veículo cadastrado.
 
-1. O Operador informa marca, modelo, ano de fabricação, cor e preço anunciado.
-2. O Operador solicita o cadastro ao Sistema.
-3. O Sistema valida os dados, gera um identificador e cria o Veículo como Disponível.
-4. O Sistema registra o evento Veículo cadastrado no Histórico do veículo.
-5. O Sistema devolve a confirmação e os dados do Veículo cadastrado.
-
-### Invariantes aplicadas
-
-Esta história aplica as invariantes `INV-01`, `INV-02`, `INV-03`, `INV-04`, `INV-05`, `INV-12`, `INV-13` e `INV-14`.
-
-### Resultado
-
-Um novo Veículo está Disponível no catálogo e seu cadastro pode ser consultado no histórico.
-
-### Situações de erro
-
-- Dados obrigatórios ausentes ou formados apenas por espaços.
-- Ano de fabricação inválido.
-- Preço anunciado inválido.
-- Falha ao persistir o Veículo ou seu histórico. Nesse caso, nenhum dos dois registros deve permanecer salvo.
-
-## História 2 - Editar veículo disponível
-
-### Situação inicial
-
-O Operador selecionou um Veículo Disponível e precisa alterar um ou mais dados.
+## História 2 - Editar veículo
 
 ```mermaid
 flowchart LR
     O[Operador]
-    A([Dados alterados])
+    D([Identificador e novos dados])
     S[Sistema]
-    V[(Veículo Disponível)]
-    H[(Histórico do veículo)]
+    V[(Veículo)]
+    H[(Data de edição)]
 
-    O -->|1. consulta| V
-    O -->|2. informa| A
-    A -->|3. solicita edição| S
-    S -->|4. atualiza| V
-    S -->|5. registra Veículo editado| H
-    S -->|6. confirma edição| O
+    O -->|1. informa| D
+    D -->|2. envia| S
+    S -->|3. busca e atualiza| V
+    S -->|4. registra| H
+    S -->|5. retorna o veículo| O
 ```
 
-### Sequência
-
-1. O Operador consulta o Veículo que deseja alterar.
-2. O Operador informa os novos valores.
-3. O Operador solicita a edição ao Sistema.
-4. O Sistema confirma que o Veículo está Disponível, valida os dados e aplica somente as alterações efetivas.
-5. O Sistema registra o evento Veículo editado com os valores anteriores e novos.
-6. O Sistema devolve os dados atualizados.
-
-### Invariantes aplicadas
-
-Esta história aplica as invariantes `INV-02`, `INV-03`, `INV-04`, `INV-06`, `INV-12`, `INV-13` e `INV-15`.
-
-### Resultado
-
-O Veículo permanece Disponível com os novos dados, e as diferenças ficam registradas no histórico.
-
-### Situações de erro
-
-- Veículo não encontrado.
-- Tentativa de editar um Veículo Vendido.
-- Novo valor inválido.
-- Concorrência com outra alteração ou com o registro da venda.
-- Falha ao persistir a edição ou o histórico.
+1. O Operador informa o identificador e os novos dados.
+2. O Sistema busca o Veículo.
+3. O Sistema valida os dados informados e atualiza o registro.
+4. O Sistema registra a data da edição.
+5. O Sistema retorna o Veículo atualizado.
 
 ## História 3 - Registrar venda
 
-### Situação inicial
-
-Um Comprador decidiu adquirir um Veículo Disponível, e o Operador precisa registrar a operação.
-
 ```mermaid
 flowchart LR
-    C[Comprador]
     O[Operador]
-    D([Dados da venda])
+    D([Veículo, CPF e data da venda])
     S[Sistema]
     V[(Veículo)]
     VD[(Venda)]
-    H[(Histórico do veículo)]
+    H[(Data da venda)]
 
-    C -->|1. fornece CPF| O
-    O -->|2. seleciona| V
-    O -->|3. informa| D
-    D -->|4. solicita venda| S
-    S -->|5. altera para Vendido| V
-    S -->|6. cria com preço preservado| VD
-    S -->|7. registra Veículo vendido| H
-    S -->|8. confirma venda| O
+    O -->|1. informa| D
+    D -->|2. envia| S
+    S -->|3. confirma disponibilidade| V
+    S -->|4. registra| VD
+    S -->|5. altera para vendido| V
+    S -->|6. registra| H
+    S -->|7. confirma a venda| O
 ```
 
-### Sequência
+1. O Operador informa o identificador do Veículo, o CPF do comprador e a data da venda.
+2. O Sistema valida o CPF e a data.
+3. O Sistema busca o Veículo e confirma que ele está disponível.
+4. O Sistema registra a Venda.
+5. O Sistema altera a situação do Veículo para `VENDIDO`.
+6. O Sistema registra a data da venda.
+7. O Sistema retorna a confirmação da Venda.
 
-1. O Comprador fornece seu CPF ao Operador.
-2. O Operador seleciona o Veículo Disponível.
-3. O Operador informa o CPF do comprador e a data da venda.
-4. O Operador solicita o registro da venda ao Sistema.
-5. O Sistema valida os dados e altera a situação do Veículo para Vendido.
-6. O Sistema cria a Venda preservando o preço anunciado vigente.
-7. O Sistema registra o evento Veículo vendido no histórico.
-8. O Sistema devolve a confirmação da venda.
+O registro da Venda, a alteração da situação e a data da venda são persistidos na mesma operação.
 
-### Invariantes aplicadas
-
-Esta história aplica as invariantes `INV-06`, `INV-07`, `INV-08`, `INV-09`, `INV-10`, `INV-11`, `INV-12`, `INV-13`, `INV-14` e `INV-16`.
-
-### Resultado
-
-O Veículo passa a estar Vendido, a Venda fica registrada e o fato pode ser consultado no histórico.
-
-### Situações de erro
-
-- Veículo não encontrado.
-- Veículo já vendido.
-- CPF inválido.
-- Data da venda inválida.
-- Duas tentativas concorrentes de vender o mesmo Veículo. Somente uma pode ser concluída.
-- Falha em qualquer gravação da transação.
-
-## História 4 - Consultar veículos e histórico
-
-### Situação inicial
-
-O Operador precisa consultar o catálogo ou entender as mudanças ocorridas com um Veículo.
+## História 4 - Listar veículos disponíveis
 
 ```mermaid
 flowchart LR
     O[Operador]
-    F([Critério da consulta])
     S[Sistema]
-    V[(Veículos)]
-    H[(Histórico do veículo)]
-    L([Lista de veículos])
+    V[(Veículos disponíveis)]
 
-    O -->|1. informa| F
-    F -->|2. solicita consulta| S
-    S -->|3a. consulta por situação e preço| V
-    S -->|3b. consulta por veículo e data| H
-    V -->|4a. produz ordenação crescente| L
-    L -->|5a. apresenta| O
-    H -->|4b. apresenta ordem cronológica| O
+    O -->|1. solicita a lista| S
+    S -->|2. consulta e ordena por preço| V
+    V -->|3. apresenta do menor para o maior| O
 ```
 
-### Sequência
+1. O Operador solicita os veículos disponíveis.
+2. O Sistema consulta os veículos com situação `DISPONIVEL`.
+3. O Sistema apresenta a lista do menor para o maior preço.
 
-1. O Operador escolhe consultar Veículos Disponíveis, Veículos Vendidos ou o histórico de um Veículo.
-2. O Operador solicita a consulta ao Sistema.
-3. Para o catálogo, o Sistema filtra pela situação solicitada. Para o histórico, localiza os registros do Veículo.
-4. O Sistema ordena o catálogo pelo preço aplicável ou o histórico pela data do evento.
-5. O Sistema apresenta o resultado ao Operador.
+Uma consulta sem resultados devolve uma lista vazia.
 
-### Invariantes aplicadas
+## História 5 - Listar veículos vendidos
 
-Esta história aplica as invariantes `INV-13`, `INV-17`, `INV-18`, `INV-19` e `INV-20`.
+```mermaid
+flowchart LR
+    O[Operador]
+    S[Sistema]
+    V[(Veículos vendidos)]
 
-### Resultado
+    O -->|1. solicita a lista| S
+    S -->|2. consulta e ordena por preço| V
+    V -->|3. apresenta do menor para o maior| O
+```
 
-O Operador recebe uma lista determinística ou o histórico cronológico solicitado.
+1. O Operador solicita os veículos vendidos.
+2. O Sistema consulta os veículos com situação `VENDIDO`.
+3. O Sistema apresenta a lista do menor para o maior preço.
 
-### Situações de erro
-
-- Veículo não encontrado na consulta de histórico.
-- Critério de consulta inválido.
-- Falha de acesso aos dados.
-
-Uma consulta válida sem resultados devolve uma coleção vazia e não representa erro.
+Uma consulta sem resultados devolve uma lista vazia.
