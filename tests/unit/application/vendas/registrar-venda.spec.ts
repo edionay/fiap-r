@@ -70,7 +70,7 @@ describe('RegistrarVenda', () => {
     expect(resultado).toEqual({
       identificador: VENDA_ID,
       veiculoId: VEICULO_ID,
-      situacaoVeiculo: SituacaoVeiculo.VENDIDO,
+      situacao: SituacaoVeiculo.VENDIDO,
       vendidoEm: DATA_VENDA,
     });
     expect(repositorioVendas.registrar).toHaveBeenCalledWith(

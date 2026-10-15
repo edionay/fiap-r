@@ -8,6 +8,7 @@ import type { DependenciasAplicacao } from '../adapters/inbound/http/app';
 import { EdicaoVeiculosController } from '../adapters/inbound/http/controllers/edicao-veiculos.controller';
 import { ProntidaoController } from '../adapters/inbound/http/controllers/prontidao.controller';
 import { VeiculosController } from '../adapters/inbound/http/controllers/veiculos.controller';
+import { VendasController } from '../adapters/inbound/http/controllers/vendas.controller';
 
 type ConstrutorSemArgumentos<T> = new () => T;
 
@@ -64,6 +65,21 @@ export const iocContainer: IocContainerFactory<Request> = (requisicao) => {
 
         return new EdicaoVeiculosController(
           dependencias.editarVeiculo,
+        ) as unknown as T;
+      }
+
+      if (identificador === (VendasController as ServiceIdentifier<T>)) {
+        const dependencias = requisicao.app.locals
+          .dependencias as Partial<DependenciasAplicacao> | undefined;
+
+        if (dependencias?.registrarVenda === undefined) {
+          throw new Error(
+            'A dependência de registro de venda não foi configurada.',
+          );
+        }
+
+        return new VendasController(
+          dependencias.registrarVenda,
         ) as unknown as T;
       }
 

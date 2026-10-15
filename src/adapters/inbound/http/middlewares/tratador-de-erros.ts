@@ -10,6 +10,7 @@ const STATUS_ERROS_APLICACAO: Readonly<Record<string, number>> = {
 
 const STATUS_ERROS_DOMINIO: Readonly<Record<string, number>> = {
   IDENTIFICADOR_VEICULO_INVALIDO: 400,
+  VEICULO_JA_VENDIDO: 409,
 };
 
 export interface RespostaDeErro {

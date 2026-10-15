@@ -16,7 +16,7 @@ export interface DadosRegistroVenda {
 export interface ResultadoRegistrarVenda {
   identificador: string;
   veiculoId: string;
-  situacaoVeiculo: SituacaoVeiculo;
+  situacao: SituacaoVeiculo;
   vendidoEm: Date;
 }
 
@@ -55,7 +55,7 @@ export class RegistrarVenda {
     return {
       identificador: venda.identificador,
       veiculoId: venda.veiculoId.valor,
-      situacaoVeiculo: veiculoVendido.situacao,
+      situacao: veiculoVendido.situacao,
       vendidoEm: venda.vendidoEm,
     };
   }
