@@ -4,13 +4,6 @@ import { ErroDominio } from '../../../domain/erro-dominio';
 import type { Veiculo } from '../../../domain/veiculo';
 import type { Venda } from '../../../domain/venda';
 
-function formatarCentavosComoDecimal(centavos: number): string {
-  const parteInteira = Math.trunc(centavos / 100);
-  const parteDecimal = centavos % 100;
-
-  return `${String(parteInteira)}.${String(parteDecimal).padStart(2, '0')}`;
-}
-
 export class RepositorioVendasPostgres implements RepositorioVendas {
   public constructor(private readonly pool: Pool) {}
 
@@ -41,16 +34,14 @@ export class RepositorioVendasPostgres implements RepositorioVendas {
             id,
             veiculo_id,
             cpf_comprador,
-            preco_venda,
             vendido_em
           )
-          VALUES ($1, $2, $3, $4, $5)
+          VALUES ($1, $2, $3, $4)
         `,
         [
           venda.identificador,
           venda.veiculoId.valor,
           venda.cpfComprador.valor,
-          formatarCentavosComoDecimal(veiculoVendido.precoAnunciado.centavos),
           venda.vendidoEm,
         ],
       );
