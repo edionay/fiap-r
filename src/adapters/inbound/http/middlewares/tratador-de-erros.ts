@@ -19,6 +19,19 @@ export interface RespostaDeErro {
   detalhes?: unknown;
 }
 
+function ehErroDeJsonMalformado(erro: unknown): boolean {
+  if (!(erro instanceof SyntaxError)) {
+    return false;
+  }
+
+  const dadosErro = erro as SyntaxError & {
+    status?: number;
+    type?: string;
+  };
+
+  return dadosErro.status === 400 && dadosErro.type === 'entity.parse.failed';
+}
+
 export const tratadorDeRotaNaoEncontrada: RequestHandler = (
   _requisicao,
   resposta,
@@ -37,6 +50,16 @@ export const tratadorDeErros: ErrorRequestHandler = (
   resposta,
   _proximo,
 ) => {
+  if (ehErroDeJsonMalformado(erro)) {
+    const corpo: RespostaDeErro = {
+      codigo: 'CORPO_REQUISICAO_INVALIDO',
+      mensagem: 'O corpo da requisição deve conter um JSON válido.',
+    };
+
+    resposta.status(400).json(corpo);
+    return;
+  }
+
   if (erro instanceof ValidateError) {
     const corpo: RespostaDeErro = {
       codigo: 'ERRO_DE_VALIDACAO',
